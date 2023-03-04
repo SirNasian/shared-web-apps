@@ -4,8 +4,8 @@ const HTMLWebpackPlugin = require("html-webpack-plugin");
 module.exports = [
 	{
 		entry: {
-			"api-server": { import: "./src/api/server.ts", dependOn: "lib/express"},
-			"lib/express": "express",
+			"api-server": { import: "./src/api/server.ts", dependOn: "lib/vendor" },
+			"lib/vendor": ["dotenv", "express", "mariadb", "mysql2", "pg-hstore", "sequelize"],
 		},
 		module: {
 			rules: [
@@ -27,8 +27,8 @@ module.exports = [
 	},
 	{
 		entry: {
-			client: { import: "./src/auth-client/client.tsx", dependOn: "mantine" },
-			mantine: "@mantine/core",
+			client: { import: "./src/auth-client/client.tsx", dependOn: "vendor" },
+			vendor: ["@emotion/react", "@mantine/core", "@mantine/form", "@mantine/hooks", "react", "react-dom"],
 		},
 		module: {
 			rules: [
