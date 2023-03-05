@@ -2,6 +2,7 @@ import fs from "fs";
 import mariadb from "mariadb";
 import mysql from "mysql2";
 import { Sequelize, DataTypes } from "sequelize";
+import "dotenv/config";
 
 const dialect = String(process.env.DATABASE_URI ?? "").split(":")[0];
 const logging = (sql: string) =>
@@ -41,4 +42,5 @@ export const User = sequelize.define("user", {
 		allowNull: false,
 	},
 });
-User.sync();
+
+sequelize.sync();
