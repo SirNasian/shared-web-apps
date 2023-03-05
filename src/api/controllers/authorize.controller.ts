@@ -3,6 +3,7 @@ import { NextFunction, Response, Request } from "express";
 import "dotenv/config";
 
 import { NextMiddleware, RequestError } from "../../common/errors";
+import { User } from "../database";
 
 // TODO: move these to a less volatile storage solution
 // TODO: allow revoking of authorization_codes, access_tokens, and refresh_tokens
@@ -15,7 +16,7 @@ interface AuthorizationToken extends JwtPayload {
 	scope?: string[];
 }
 
-export const Authorize = (
+export const Authorize = async (
 	req: Request<unknown, unknown, { [key: string]: string; response_type?: string; scope?: string }>,
 	res: Response,
 	next: NextFunction
@@ -25,15 +26,19 @@ export const Authorize = (
 		if (!req.headers.authorization) throw new NextMiddleware();
 		const [authorization_type, authorization_value] = req.headers.authorization.split(" ");
 		if (!authorization_value || authorization_type !== "Basic")
-			throw new RequestError("Invalid Authorization Header", 400);
+			throw new RequestError("Invalid Authorization Header", 401);
 
 		if (!["code", "token"].includes(req.body.response_type)) throw new RequestError("Invalid response_type", 400);
 		if (req.body.response_type === "token") throw new RequestError("Not Implemented", 501); // TODO: implement this
 
-		const [email, password] = Buffer.from(authorization_value, "base64").toString().split(":");
-		if (!email || !password) throw new RequestError("Invalid Authorization Header", 400);
+		const [email, password] = Buffer.from(authorization_value, "base64").toString().split(/:(.*)/);
+		if (!email || !password) throw new RequestError("Invalid Authorization Header", 401);
 
-		// TODO: validate email + password
+		const users = await User.findAll({ where: { email }});
+		if (users.length === 0) throw new RequestError("User not found", 401);
+		if (users.length > 1) throw new RequestError("User is ambiguous", 500);
+		if (users[0].password !== password) throw new RequestError("Incorrect password", 401);
+
 		// TODO: validate scope and insert into authorization_code
 
 		const authorization_code = signJWT({ email, scope: [] }, process.env.SECRET ?? "secret", { expiresIn: "5m" });

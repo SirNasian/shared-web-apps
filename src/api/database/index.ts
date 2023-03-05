@@ -1,7 +1,7 @@
 import fs from "fs";
 import mariadb from "mariadb";
 import mysql from "mysql2";
-import { Sequelize, DataTypes } from "sequelize";
+import { DataTypes, InferAttributes, InferCreationAttributes, Model, Sequelize } from "sequelize";
 import "dotenv/config";
 
 const dialect = String(process.env.DATABASE_URI ?? "").split(":")[0];
@@ -23,24 +23,36 @@ switch (dialect) {
 const sequelize = new Sequelize(process.env.DATABASE_URI, { dialect, dialectModule, logging });
 sequelize.authenticate();
 
-export const User = sequelize.define("user", {
-	id: {
-		type: DataTypes.STRING,
-		allowNull: false,
-		primaryKey: true,
+export class User extends Model<InferAttributes<User>, InferCreationAttributes<User>> {
+	declare id: string;
+	declare email: string;
+	declare name: string;
+	declare password: string;
+}
+User.init(
+	{
+		id: {
+			type: DataTypes.STRING,
+			allowNull: false,
+			primaryKey: true,
+		},
+		email: {
+			type: DataTypes.STRING,
+			allowNull: false,
+		},
+		name: {
+			type: DataTypes.STRING,
+			allowNull: false,
+		},
+		password: {
+			type: DataTypes.STRING,
+			allowNull: false,
+		},
 	},
-	email: {
-		type: DataTypes.STRING,
-		allowNull: false,
-	},
-	name: {
-		type: DataTypes.STRING,
-		allowNull: false,
-	},
-	password: {
-		type: DataTypes.STRING,
-		allowNull: false,
-	},
-});
+	{
+		tableName: "users",
+		sequelize,
+	}
+);
 
 sequelize.sync();
