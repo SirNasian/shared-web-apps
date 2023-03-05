@@ -35,9 +35,8 @@ export const Authorize = async (
 		if (!email || !password) throw new RequestError("Invalid Authorization Header", 401);
 
 		const users = await User.findAll({ where: { email } });
-		if (users.length === 0) throw new RequestError("User not found", 401);
-		if (users.length > 1) throw new RequestError("User is ambiguous", 500);
-		if (users[0].password !== password) throw new RequestError("Incorrect password", 401);
+		if (users.length === 0 || users.length > 1 || users[0].password !== password)
+			throw new RequestError("Incorrect credentials", 401);
 
 		// TODO: validate scope and insert into authorization_code
 

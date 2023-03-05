@@ -1,6 +1,7 @@
 import React from "react";
 import { createRoot } from "react-dom/client";
 import { Center, ColorScheme, MantineProvider, MantineTheme, Paper } from "@mantine/core";
+import { notifications, Notifications } from "@mantine/notifications";
 
 import config from "./config";
 import { throwError } from "../common/errors";
@@ -22,11 +23,13 @@ const Router = ({
 	loading,
 	page,
 	onAuthorizeRequest,
+	onError,
 	onPageChange,
 }: {
 	loading?: boolean;
 	page: Page;
 	onAuthorizeRequest?: (email: string, password: string) => void;
+	onError?: (error: Error) => void;
 	onPageChange?: (page: Page) => void;
 }): React.ReactElement => {
 	switch (page) {
@@ -39,6 +42,7 @@ const Router = ({
 				<RegistrationPage
 					loading={loading}
 					onCancel={() => onPageChange(Page.LANDING)}
+					onError={onError}
 					onSuccess={onAuthorizeRequest}
 				/>
 			);
@@ -78,12 +82,24 @@ const Root = (): React.ReactElement => {
 			const redirect_url = new URL(url.searchParams.get("redirect_uri") ?? window.location.href);
 			redirect_url.searchParams.append("code", code);
 			url.searchParams.has("state") && redirect_url.searchParams.append("state", url.searchParams.get("state"));
-			window.location.href = redirect_url.toString();
+			setTimeout(() => (window.location.href = redirect_url.toString()), 3000);
+			notifications.show({
+				title: "Redirecting...",
+				message: `You are being redirected to ${redirect_url.origin}`,
+				color: "blue",
+				loading: true,
+				autoClose: false,
+				withCloseButton: false,
+			});
 		} catch (error: unknown) {
 			setLoading(false);
-			throw error;
+			if (error instanceof Error) handleError(error);
+			else throw error;
 		}
 	};
+
+	const handleError = (error: Error) =>
+		notifications.show({ title: "Error", message: error.message, color: "red" });
 
 	const getPreferredWidth = (page: Page): string | undefined => {
 		switch (page) {
@@ -99,9 +115,16 @@ const Root = (): React.ReactElement => {
 
 	return (
 		<MantineProvider withGlobalStyles withNormalizeCSS theme={{ colorScheme: theme, loader: "dots" }}>
+			<Notifications />
 			<Center h="100vh" sx={body_style}>
 				<Paper p="lg" pos="relative" radius="lg" w={getPreferredWidth(page)}>
-					<Router loading={loading} page={page} onAuthorizeRequest={handleAuthorizeRequest} onPageChange={setPage} />
+					<Router
+						loading={loading}
+						page={page}
+						onAuthorizeRequest={handleAuthorizeRequest}
+						onError={handleError}
+						onPageChange={setPage}
+					/>
 				</Paper>
 			</Center>
 		</MantineProvider>

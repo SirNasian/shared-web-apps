@@ -1,6 +1,7 @@
 import React from "react";
 import { Box, Button, Flex, LoadingOverlay, PasswordInput, TextInput } from "@mantine/core";
 import { useForm, UseFormReturnType } from "@mantine/form";
+import { notifications } from "@mantine/notifications";
 
 import config from "../config";
 import { throwError } from "../../common/errors";
@@ -61,6 +62,12 @@ export const RegistrationPage = ({
 				})
 				.then((response) => response.status === 200 || response.text().then((message) => throwError(message)))
 				.catch(onError);
+
+			notifications.show({
+				title: "Success!",
+				message: "You have been registered successfully!",
+				color: "green",
+			});
 
 			onSuccess && onSuccess(data.email, data.password);
 		} finally {

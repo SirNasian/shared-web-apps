@@ -28,7 +28,16 @@ module.exports = [
 	{
 		entry: {
 			client: { import: "./src/auth-client/client.tsx", dependOn: "vendor" },
-			vendor: ["@emotion/react", "@mantine/core", "@mantine/form", "@mantine/hooks", "buffer", "react", "react-dom"],
+			vendor: [
+				"@emotion/react",
+				"@mantine/core",
+				"@mantine/form",
+				"@mantine/hooks",
+				"@mantine/notifications",
+				"buffer",
+				"react",
+				"react-dom",
+			],
 		},
 		module: {
 			rules: [
