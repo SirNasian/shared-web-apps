@@ -1,5 +1,5 @@
 import React from "react";
-import { Button, Flex, PasswordInput, TextInput } from "@mantine/core";
+import { Box, Button, Flex, LoadingOverlay, PasswordInput, TextInput } from "@mantine/core";
 import { useForm, UseFormReturnType } from "@mantine/form";
 
 import config from "../config";
@@ -19,6 +19,7 @@ export const RegistrationPage = ({
 	onError?: (error: Error) => void;
 	onSuccess?: () => void;
 }): React.ReactElement => {
+	const [loading, setLoading] = React.useState<boolean>(false);
 	const form: UseFormReturnType<FormData> = useForm({
 		initialValues: {
 			email: "",
@@ -33,43 +34,72 @@ export const RegistrationPage = ({
 	});
 
 	const handleSubmit = async (data: FormData) => {
-		const throwError = (message?: string) => {
-			throw new Error(message);
-		};
-		const count = Number(
+		setLoading(true);
+		try {
+			const throwError = (message?: string) => {
+				throw new Error(message);
+			};
+			const count = Number(
+				await window
+					.fetch(new URL(`/api/user/count?email=${encodeURIComponent(data.email)}`, config.API_URL).toString())
+					.then((response) => response.text().then((message) => ({ status: response.status, message: message })))
+					.then(({ status, message }) => (status === 200 ? message : throwError(message)))
+					.catch(onError)
+			);
+			if (count > 0) {
+				form.setErrors({ email: "This email is already taken by another user" });
+				return;
+			}
+
 			await window
-				.fetch(new URL(`/api/user/count?email=${encodeURIComponent(data.email)}`, config.API_URL).toString())
-				.then((response) => response.text().then((message) => ({ status: response.status, message: message })))
-				.then(({ status, message }) => (status === 200 ? message : throwError(message)))
-				.catch(onError)
-		);
-		if (count > 0) {
-			form.setErrors({ email: "This email is already taken by another user" });
-			return;
+				.fetch(new URL("/api/user/register", config.API_URL).toString(), {
+					method: "POST",
+					headers: { "Content-Type": "application/json" },
+					body: JSON.stringify(data),
+				})
+				.then((response) => response.status === 200 || response.text().then((message) => throwError(message)))
+				.catch(onError);
+
+			onSuccess && onSuccess();
+		} finally {
+			setLoading(false);
 		}
-
-		await window
-			.fetch(new URL("/api/user/register", config.API_URL).toString(), {
-				method: "POST",
-				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify(data),
-			})
-			.then((response) => response.status === 200 || response.text().then((message) => throwError(message)))
-			.catch(onError);
-
-		onSuccess && onSuccess();
 	};
+
+	const BackButton = ({ hidden }: { hidden: boolean }) =>
+		hidden ? (
+			<Box></Box>
+		) : (
+			<Button color="dark" disabled={loading} variant="subtle" onClick={onCancel}>
+				Back
+			</Button>
+		);
 
 	return (
 		<form onSubmit={form.onSubmit(handleSubmit)}>
-			<TextInput label="Email" variant="filled" withAsterisk {...form.getInputProps("email")} />
-			<TextInput label="Display Name" mt="xs" variant="filled" withAsterisk {...form.getInputProps("name")} />
-			<PasswordInput label="Password" mt="xs" variant="filled" withAsterisk {...form.getInputProps("password")} />
+			<LoadingOverlay radius="lg" visible={loading} />
+			<TextInput disabled={loading} label="Email" variant="filled" withAsterisk {...form.getInputProps("email")} />
+			<TextInput
+				disabled={loading}
+				label="Display Name"
+				mt="xs"
+				variant="filled"
+				withAsterisk
+				{...form.getInputProps("name")}
+			/>
+			<PasswordInput
+				disabled={loading}
+				label="Password"
+				mt="xs"
+				variant="filled"
+				withAsterisk
+				{...form.getInputProps("password")}
+			/>
 			<Flex justify="space-between" mt="md">
-				<Button color="dark" variant="subtle" onClick={onCancel}>
-					Back
+				<BackButton hidden={loading} />
+				<Button disabled={loading} type="submit">
+					Register
 				</Button>
-				<Button type="submit">Register</Button>
 			</Flex>
 		</form>
 	);

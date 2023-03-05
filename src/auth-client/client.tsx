@@ -45,9 +45,9 @@ const Root = (): React.ReactElement => {
 	};
 
 	return (
-		<MantineProvider withGlobalStyles withNormalizeCSS theme={{ colorScheme: theme }}>
+		<MantineProvider withGlobalStyles withNormalizeCSS theme={{ colorScheme: theme, loader: "dots" }}>
 			<Center h="100vh" sx={body_style}>
-				<Paper p="lg" radius="lg" w={getPreferredWidth(page)}>
+				<Paper p="lg" pos="relative" radius="lg" w={getPreferredWidth(page)}>
 					<Router page={page} onPageChange={setPage} />
 				</Paper>
 			</Center>
