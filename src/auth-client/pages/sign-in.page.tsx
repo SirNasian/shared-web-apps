@@ -41,7 +41,14 @@ export const SignInPage = ({
 	return (
 		<form onSubmit={form.onSubmit(handleSubmit)}>
 			<LoadingOverlay radius="lg" visible={loading} />
-			<TextInput disabled={loading} label="Email" variant="filled" withAsterisk {...form.getInputProps("email")} />
+			<TextInput
+				autoFocus
+				disabled={loading}
+				label="Email"
+				variant="filled"
+				withAsterisk
+				{...form.getInputProps("email")}
+			/>
 			<PasswordInput
 				disabled={loading}
 				label="Password"
