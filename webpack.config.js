@@ -5,7 +5,7 @@ module.exports = [
 	{
 		entry: {
 			"api-server": { import: "./src/api/server.ts", dependOn: "lib/vendor" },
-			"lib/vendor": ["dotenv", "express", "mariadb", "mysql2", "pg-hstore", "sequelize"],
+			"lib/vendor": ["dotenv", "express", "jsonwebtoken", "mariadb", "mysql2", "pg-hstore", "sequelize"],
 		},
 		module: {
 			rules: [
