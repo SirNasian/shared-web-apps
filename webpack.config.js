@@ -28,7 +28,7 @@ module.exports = [
 	{
 		entry: {
 			client: { import: "./src/auth-client/client.tsx", dependOn: "vendor" },
-			vendor: ["@emotion/react", "@mantine/core", "@mantine/form", "@mantine/hooks", "react", "react-dom"],
+			vendor: ["@emotion/react", "@mantine/core", "@mantine/form", "@mantine/hooks", "buffer", "react", "react-dom"],
 		},
 		module: {
 			rules: [
@@ -41,6 +41,9 @@ module.exports = [
 		},
 		resolve: {
 			extensions: [".tsx", ".ts", ".js"],
+			fallback: {
+				buffer: require.resolve("buffer"),
+			},
 		},
 		output: {
 			filename: "js/[name].js",

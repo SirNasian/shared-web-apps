@@ -3,6 +3,7 @@ import { Box, Button, Flex, LoadingOverlay, PasswordInput, TextInput } from "@ma
 import { useForm, UseFormReturnType } from "@mantine/form";
 
 import config from "../config";
+import { throwError } from "../../common/errors";
 
 interface FormData {
 	email: string;
@@ -17,7 +18,7 @@ export const RegistrationPage = ({
 }: {
 	onCancel?: () => void;
 	onError?: (error: Error) => void;
-	onSuccess?: () => void;
+	onSuccess?: (email: string, password: string) => void;
 }): React.ReactElement => {
 	const [loading, setLoading] = React.useState<boolean>(false);
 	const form: UseFormReturnType<FormData> = useForm({
@@ -36,9 +37,6 @@ export const RegistrationPage = ({
 	const handleSubmit = async (data: FormData) => {
 		setLoading(true);
 		try {
-			const throwError = (message?: string) => {
-				throw new Error(message);
-			};
 			const count = Number(
 				await window
 					.fetch(new URL(`/api/user/count?email=${encodeURIComponent(data.email)}`, config.API_URL).toString())
@@ -60,7 +58,7 @@ export const RegistrationPage = ({
 				.then((response) => response.status === 200 || response.text().then((message) => throwError(message)))
 				.catch(onError);
 
-			onSuccess && onSuccess();
+			onSuccess && onSuccess(data.email, data.password);
 		} finally {
 			setLoading(false);
 		}

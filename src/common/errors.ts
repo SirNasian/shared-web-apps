@@ -13,3 +13,7 @@ export class NextMiddleware extends Error {
 		Object.setPrototypeOf(this, NextMiddleware.prototype);
 	}
 }
+
+export const throwError = (message?: string) => {
+	throw new Error(message);
+};

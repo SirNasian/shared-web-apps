@@ -4,7 +4,7 @@ import { Authorize, GetTokens, ValidateAuthorizeRequest } from "../controllers/a
 export const AuthorizeRouter = Router();
 const bodyURLEncoded = expressURLEncoded({ extended: true });
 
-AuthorizeRouter.get("/token", bodyURLEncoded, GetTokens);
-AuthorizeRouter.get("/", bodyURLEncoded, Authorize);
+AuthorizeRouter.post("/token", bodyURLEncoded, GetTokens);
+AuthorizeRouter.post("/", bodyURLEncoded, Authorize);
 AuthorizeRouter.get("/", ValidateAuthorizeRequest);
 AuthorizeRouter.use("/", ExpressStatic("auth-client"));

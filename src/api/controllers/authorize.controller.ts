@@ -31,10 +31,10 @@ export const Authorize = async (
 		if (!["code", "token"].includes(req.body.response_type)) throw new RequestError("Invalid response_type", 400);
 		if (req.body.response_type === "token") throw new RequestError("Not Implemented", 501); // TODO: implement this
 
-		const [email, password] = Buffer.from(authorization_value, "base64").toString().split(/:(.*)/);
+		const [email, password] = Buffer.from(authorization_value, "base64").toString("utf8").split(/:(.*)/);
 		if (!email || !password) throw new RequestError("Invalid Authorization Header", 401);
 
-		const users = await User.findAll({ where: { email }});
+		const users = await User.findAll({ where: { email } });
 		if (users.length === 0) throw new RequestError("User not found", 401);
 		if (users.length > 1) throw new RequestError("User is ambiguous", 500);
 		if (users[0].password !== password) throw new RequestError("Incorrect password", 401);
@@ -67,6 +67,7 @@ export const GetTokens = (
 ) => {
 	// TODO: consider scope (can only reduce scope, not increase
 	//       see: https://www.rfc-editor.org/rfc/rfc6749#page-47
+	// TODO: consider additional basic client_id + client_secret authentication
 	try {
 		if (!["authorization_code", "refresh_token"].includes(req.body.grant_type))
 			throw new RequestError("Invalid grant_type", 400);
@@ -116,6 +117,7 @@ export const ValidateAuthorizeRequest = (
 	// TODO: validate client_id + redirect_uri
 	try {
 		if (!["code", "token"].includes(req.query.response_type)) throw new RequestError("Invalid response_type", 400);
+		if (req.query.response_type === "token") throw new RequestError("Not Implemented", 501); // TODO: implement this
 		next();
 	} catch (error: unknown) {
 		if (error instanceof RequestError) res.status(error.status).send(error.message);
