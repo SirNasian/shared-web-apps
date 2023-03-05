@@ -1,7 +1,7 @@
 import { JwtPayload, sign as signJWT, verify as verifyJWT } from "jsonwebtoken";
 import { NextFunction, Response, Request } from "express";
-import "dotenv/config";
 
+import config from "../config";
 import { NextMiddleware, RequestError } from "../../common/errors";
 import { User } from "../database";
 
@@ -41,7 +41,7 @@ export const Authorize = async (
 
 		// TODO: validate scope and insert into authorization_code
 
-		const authorization_code = signJWT({ email, scope: [] }, process.env.SECRET ?? "secret", { expiresIn: "5m" });
+		const authorization_code = signJWT({ email, scope: [] }, config.SECRET, { expiresIn: "5m" });
 		authorization_codes.add(authorization_code);
 		res.status(200).send(authorization_code);
 	} catch (error: unknown) {
@@ -88,12 +88,12 @@ export const GetTokens = (
 				break;
 		}
 
-		const data = verifyJWT(jwt, process.env.SECRET ?? "secret") as AuthorizationToken;
+		const data = verifyJWT(jwt, config.SECRET) as AuthorizationToken;
 		if (!data.email || !data.scope) throw new RequestError("Malformed code", 400);
 		Object.keys(data).forEach((key) => ["email", "scope"].includes(key) || delete data[key]);
 
-		const access_token = signJWT(data, process.env.SECRET ?? "secret", { expiresIn: "5m" });
-		const refresh_token = signJWT(data, process.env.SECRET ?? "secret", { expiresIn: "30m" });
+		const access_token = signJWT(data, config.SECRET, { expiresIn: "5m" });
+		const refresh_token = signJWT(data, config.SECRET, { expiresIn: "30m" });
 		access_tokens.add(access_token);
 		refresh_tokens.add(refresh_token);
 
