@@ -97,7 +97,7 @@ export const GetTokens = (
 		access_tokens.add(access_token);
 		refresh_tokens.add(refresh_token);
 
-		res.status(200).json({ access_token, refresh_token });
+		res.status(200).json({ access_token, refresh_token, expires_in: 300 });
 	} catch (error: unknown) {
 		if (error instanceof RequestError) res.status(error.status).send(error.message);
 		else throw error;
