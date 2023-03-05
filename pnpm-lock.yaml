@@ -5,14 +5,13 @@ specifiers:
   '@mantine/core': ^6.0.0
   '@mantine/form': ^6.0.0
   '@mantine/hooks': ^6.0.0
-  '@types/body-parser': ^1.19.2
   '@types/express': ^4.17.17
   '@types/node': ^18.14.6
   '@types/react': ^18.0.28
   '@types/react-dom': ^18.0.11
+  '@types/uuid': ^9.0.1
   '@typescript-eslint/eslint-plugin': ^5.54.0
   '@typescript-eslint/parser': ^5.54.0
-  body-parser: ^1.20.2
   dotenv: ^16.0.3
   eslint: ^8.35.0
   eslint-plugin-react: ^7.32.2
@@ -28,6 +27,7 @@ specifiers:
   sequelize: ^6.29.0
   ts-loader: ^9.4.2
   typescript: ^4.9.5
+  uuid: ^9.0.0
   webpack: ^5.75.0
   webpack-cli: ^5.0.1
 
@@ -36,7 +36,6 @@ dependencies:
   '@mantine/core': 6.0.0_2anhyhi6fovdpc2mtkpggnnsdu
   '@mantine/form': 6.0.0_react@18.2.0
   '@mantine/hooks': 6.0.0_react@18.2.0
-  body-parser: 1.20.2
   dotenv: 16.0.3
   express: 4.18.2
   mariadb: 3.1.0
@@ -45,13 +44,14 @@ dependencies:
   react: 18.2.0
   react-dom: 18.2.0_react@18.2.0
   sequelize: 6.29.0_r7ofggq2app4gmyjnhdh25eqxy
+  uuid: 9.0.0
 
 devDependencies:
-  '@types/body-parser': 1.19.2
   '@types/express': 4.17.17
   '@types/node': 18.14.6
   '@types/react': 18.0.28
   '@types/react-dom': 18.0.11
+  '@types/uuid': 9.0.1
   '@typescript-eslint/eslint-plugin': 5.54.0_6mj2wypvdnknez7kws2nfdgupi
   '@typescript-eslint/parser': 5.54.0_ycpbpc6yetojsgtrx3mwntkhsu
   eslint: 8.35.0
@@ -639,6 +639,10 @@ packages:
       '@types/node': 18.14.6
     dev: true
 
+  /@types/uuid/9.0.1:
+    resolution: {integrity: sha512-rFT3ak0/2trgvp4yYZo5iKFEPsET7vKydKF+VRCxlQ9bpheehyAJH89dAkaLEq/j/RZXJIqcgsmPJKUP1Z28HA==}
+    dev: true
+
   /@types/validator/13.7.13:
     resolution: {integrity: sha512-EMfHccxNKXaSxTK6DN0En9WsXa7uR4w3LQtx31f6Z2JjG5hJQeVX5zUYMZoatjZgnoQmRcT94WnNWwi0BzQW6Q==}
     dev: false
@@ -1090,26 +1094,6 @@ packages:
       on-finished: 2.4.1
       qs: 6.11.0
       raw-body: 2.5.1
-      type-is: 1.6.18
-      unpipe: 1.0.0
-    transitivePeerDependencies:
-      - supports-color
-    dev: false
-
-  /body-parser/1.20.2:
-    resolution: {integrity: sha512-ml9pReCu3M61kGlqoTm2umSXTlRTuGTx0bfYj+uIUKKYycG5NtSbeetV3faSU6R7ajOPw0g/J1PvK4qNy7s5bA==}
-    engines: {node: '>= 0.8', npm: 1.2.8000 || >= 1.4.16}
-    dependencies:
-      bytes: 3.1.2
-      content-type: 1.0.5
-      debug: 2.6.9
-      depd: 2.0.0
-      destroy: 1.2.0
-      http-errors: 2.0.0
-      iconv-lite: 0.4.24
-      on-finished: 2.4.1
-      qs: 6.11.0
-      raw-body: 2.5.2
       type-is: 1.6.18
       unpipe: 1.0.0
     transitivePeerDependencies:
@@ -2926,16 +2910,6 @@ packages:
       unpipe: 1.0.0
     dev: false
 
-  /raw-body/2.5.2:
-    resolution: {integrity: sha512-8zGqypfENjCIqGhgXToC8aB2r7YrBX+AQAfIPs/Mlk+BtPTztOvTS01NRW/3Eh60J+a48lt8qsCzirQ6loCVfA==}
-    engines: {node: '>= 0.8'}
-    dependencies:
-      bytes: 3.1.2
-      http-errors: 2.0.0
-      iconv-lite: 0.4.24
-      unpipe: 1.0.0
-    dev: false
-
   /react-dom/18.2.0_react@18.2.0:
     resolution: {integrity: sha512-6IMTriUmvsjHUjNtEDudZfuDQUoWXVxKHhlEGSk81n4YFS+r/Kl99wXiwlVXtPBtJenozv2P+hxDsw9eA7Xo6g==}
     peerDependencies:
@@ -3676,6 +3650,11 @@ packages:
 
   /uuid/8.3.2:
     resolution: {integrity: sha512-+NYs2QeMWy+GWFOEm9xnn6HCDp0l7QBD7ml8zLUmJ+93Q5NF0NocErnwkTkXVFNiX3/fpC6afS8Dhb/gz7R7eg==}
+    hasBin: true
+    dev: false
+
+  /uuid/9.0.0:
+    resolution: {integrity: sha512-MXcSTerfPa4uqyzStbRoTgt5XIe3x5+42+q1sDuy3R5MDk66URdLMOZe5aPX/SQd+kuYAh0FdP/pO28IkQyTeg==}
     hasBin: true
     dev: false
 
