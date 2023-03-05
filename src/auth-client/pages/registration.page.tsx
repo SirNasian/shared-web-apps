@@ -12,15 +12,17 @@ interface FormData {
 }
 
 export const RegistrationPage = ({
+	loading: externalLoading,
 	onCancel,
 	onError,
 	onSuccess,
 }: {
+	loading?: boolean;
 	onCancel?: () => void;
 	onError?: (error: Error) => void;
 	onSuccess?: (email: string, password: string) => void;
 }): React.ReactElement => {
-	const [loading, setLoading] = React.useState<boolean>(false);
+	const [internalLoading, setInternalLoading] = React.useState<boolean>(false);
 	const form: UseFormReturnType<FormData> = useForm({
 		initialValues: {
 			email: "",
@@ -34,8 +36,10 @@ export const RegistrationPage = ({
 		},
 	});
 
+	const loading = internalLoading || externalLoading;
+
 	const handleSubmit = async (data: FormData) => {
-		setLoading(true);
+		setInternalLoading(true);
 		try {
 			const count = Number(
 				await window
@@ -60,7 +64,7 @@ export const RegistrationPage = ({
 
 			onSuccess && onSuccess(data.email, data.password);
 		} finally {
-			setLoading(false);
+			setInternalLoading(false);
 		}
 	};
 
