@@ -2,7 +2,8 @@ import { JwtPayload, sign as signJWT, verify as verifyJWT } from "jsonwebtoken";
 import { NextFunction, Response, Request } from "express";
 
 import config from "../config";
-import { NextMiddleware, RequestError } from "../../common/errors";
+import { TokenResponse } from "../../common/models";
+import { RequestError } from "../../common/errors";
 import { User } from "../database";
 
 // TODO: move these to a less volatile storage solution
@@ -11,25 +12,36 @@ const authorization_codes = new Set<string>();
 const access_tokens = new Set<string>();
 const refresh_tokens = new Set<string>();
 
-interface AuthorizationToken extends JwtPayload {
+interface AuthorizationTokenPayload extends JwtPayload {
 	email?: string;
 	scope?: string[];
 }
 
+const GenerateAuthorizationCode = (data: AuthorizationTokenPayload): string => {
+	const authorization_code = signJWT(data, config.SECRET, { expiresIn: "5m" });
+	authorization_codes.add(authorization_code);
+	return authorization_code;
+};
+
+const GenerateTokens = (data: AuthorizationTokenPayload): TokenResponse => {
+	const access_token = signJWT(data, config.SECRET, { expiresIn: "5m" });
+	const refresh_token = signJWT(data, config.SECRET, { expiresIn: "30m" });
+	access_tokens.add(access_token);
+	refresh_tokens.add(refresh_token);
+	return { access_token, refresh_token, expires_in: 300 };
+};
+
 export const Authorize = async (
-	req: Request<unknown, unknown, { [key: string]: string; response_type?: string; scope?: string }>,
-	res: Response,
-	next: NextFunction
+	req: Request<unknown, unknown, { [key: string]: string; response_type?: "code" | "token"; scope?: string }>,
+	res: Response
 ) => {
 	// TODO: consider limiting requests per account per time to reduce bruteforce attacks
 	try {
-		if (!req.headers.authorization) throw new NextMiddleware();
 		const [authorization_type, authorization_value] = req.headers.authorization.split(" ");
 		if (!authorization_value || authorization_type !== "Basic")
 			throw new RequestError("Invalid Authorization Header", 401);
 
 		if (!["code", "token"].includes(req.body.response_type)) throw new RequestError("Invalid response_type", 400);
-		if (req.body.response_type === "token") throw new RequestError("Not Implemented", 501); // TODO: implement this
 
 		const [email, password] = Buffer.from(authorization_value, "base64").toString("utf8").split(/:(.*)/);
 		if (!email || !password) throw new RequestError("Invalid Authorization Header", 401);
@@ -38,14 +50,12 @@ export const Authorize = async (
 		if (users.length === 0 || users.length > 1 || users[0].password !== password)
 			throw new RequestError("Incorrect credentials", 401);
 
-		// TODO: validate scope and insert into authorization_code
-
-		const authorization_code = signJWT({ email, scope: [] }, config.SECRET, { expiresIn: "5m" });
-		authorization_codes.add(authorization_code);
-		res.status(200).send(authorization_code);
+		// TODO: validate scope and insert into payload
+		const payload: AuthorizationTokenPayload = { email, scope: [] };
+		if (req.body.response_type === "code") res.status(200).send(GenerateAuthorizationCode(payload));
+		else if (req.body.response_type === "token") res.status(200).json(GenerateTokens(payload));
 	} catch (error: unknown) {
 		if (error instanceof RequestError) res.status(error.status).send(error.message);
-		else if (error instanceof NextMiddleware) next();
 		else throw error;
 	}
 };
@@ -87,16 +97,10 @@ export const GetTokens = (
 				break;
 		}
 
-		const data = verifyJWT(jwt, config.SECRET) as AuthorizationToken;
-		if (!data.email || !data.scope) throw new RequestError("Malformed code", 400);
-		Object.keys(data).forEach((key) => ["email", "scope"].includes(key) || delete data[key]);
-
-		const access_token = signJWT(data, config.SECRET, { expiresIn: "5m" });
-		const refresh_token = signJWT(data, config.SECRET, { expiresIn: "30m" });
-		access_tokens.add(access_token);
-		refresh_tokens.add(refresh_token);
-
-		res.status(200).json({ access_token, refresh_token, expires_in: 300 });
+		const payload: AuthorizationTokenPayload = verifyJWT(jwt, config.SECRET) as JwtPayload;
+		if (!payload.email || !payload.scope) throw new RequestError("Malformed code", 400);
+		Object.keys(payload).forEach((key) => ["email", "scope"].includes(key) || delete payload[key]);
+		res.status(200).json(GenerateTokens(payload));
 	} catch (error: unknown) {
 		if (error instanceof RequestError) res.status(error.status).send(error.message);
 		else throw error;
@@ -116,7 +120,6 @@ export const ValidateAuthorizeRequest = (
 	// TODO: validate client_id + redirect_uri
 	try {
 		if (!["code", "token"].includes(req.query.response_type)) throw new RequestError("Invalid response_type", 400);
-		if (req.query.response_type === "token") throw new RequestError("Not Implemented", 501); // TODO: implement this
 		next();
 	} catch (error: unknown) {
 		if (error instanceof RequestError) res.status(error.status).send(error.message);

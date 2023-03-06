@@ -4,7 +4,7 @@ import { Center, ColorScheme, MantineProvider, MantineTheme, Paper } from "@mant
 import { notifications, Notifications } from "@mantine/notifications";
 
 import config from "./config";
-import { throwError } from "../common/errors";
+import { TokenResponse } from "../common/models";
 import { LandingPage, RegistrationPage, SignInPage } from "./pages";
 import "./polyfill";
 
@@ -68,24 +68,37 @@ const Root = (): React.ReactElement => {
 		setLoading(true);
 		try {
 			const url = new URL(window.location.href);
-			const code = await window
+			const response_type: "code" | "token" = (url.searchParams.get("response_type") ?? "") as "code" | "token";
+			const response: string | TokenResponse = await window
 				.fetch(new URL(`/authorize`, config.API_URL).toString(), {
 					method: "POST",
 					headers: {
 						"Content-Type": "application/x-www-form-urlencoded",
 						Authorization: `Basic ${Buffer.from(`${username}:${password}`, "utf8").toString("base64")}`,
 					},
-					body: `response_type=${url.searchParams.get("response_type") ?? ""}`,
+					body: `response_type=${response_type}`,
 				})
-				.then((response) => response.text().then((message) => ({ status: response.status, message })))
-				.then(({ status, message }) => (status === 200 ? message : throwError(message)));
-			const redirect_url = new URL(url.searchParams.get("redirect_uri") ?? window.location.href);
-			redirect_url.searchParams.append("code", code);
-			url.searchParams.has("state") && redirect_url.searchParams.append("state", url.searchParams.get("state"));
-			setTimeout(() => (window.location.href = redirect_url.toString()), 3000);
+				.then(async (response) => {
+					if (response.status !== 200) throw new Error(await response.text());
+					else if (response_type === "code") return await response.text();
+					else if (response_type === "token") return await response.json();
+					else return "";
+				});
+
+			const redirect_uri = new URL(url.searchParams.get("redirect_uri") ?? window.location.href);
+			url.searchParams.has("state") && redirect_uri.searchParams.append("state", url.searchParams.get("state"));
+			if (response_type === "code") redirect_uri.searchParams.append("code", response as string);
+			else if (response_type === "token") {
+				const { access_token, refresh_token, expires_in } = response as TokenResponse;
+				redirect_uri.searchParams.append("access_token", access_token);
+				redirect_uri.searchParams.append("refresh_token", refresh_token);
+				redirect_uri.searchParams.append("expires_in", String(expires_in));
+			}
+
+			setTimeout(() => (window.location.href = redirect_uri.toString()), 3000);
 			notifications.show({
 				title: "Redirecting...",
-				message: `You are being redirected to ${redirect_url.origin}`,
+				message: `You are being redirected to ${redirect_uri.origin}`,
 				color: "blue",
 				loading: true,
 				autoClose: false,
@@ -98,8 +111,7 @@ const Root = (): React.ReactElement => {
 		}
 	};
 
-	const handleError = (error: Error) =>
-		notifications.show({ title: "Error", message: error.message, color: "red" });
+	const handleError = (error: Error) => notifications.show({ title: "Error", message: error.message, color: "red" });
 
 	const getPreferredWidth = (page: Page): string | undefined => {
 		switch (page) {
