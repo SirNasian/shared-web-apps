@@ -58,7 +58,7 @@ module.exports = [
 			filename: "js/[name].js",
 			path: path.resolve(__dirname, "dist", "auth-client"),
 		},
-		plugins: [new HTMLWebpackPlugin({ title: "Auth Client", template: "src/index.html" })],
+		plugins: [new HTMLWebpackPlugin({ title: "Auth Client", template: "src/common/index.html" })],
 		target: "web",
 	},
 ];
