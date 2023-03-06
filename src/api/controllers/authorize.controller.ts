@@ -17,13 +17,13 @@ interface AuthorizationTokenPayload extends JwtPayload {
 	scope?: string[];
 }
 
-const GenerateAuthorizationCode = (data: AuthorizationTokenPayload): string => {
+const generateAuthorizationCode = (data: AuthorizationTokenPayload): string => {
 	const authorization_code = signJWT(data, config.SECRET, { expiresIn: "5m" });
 	authorization_codes.add(authorization_code);
 	return authorization_code;
 };
 
-const GenerateTokens = (data: AuthorizationTokenPayload): TokenResponse => {
+const generateTokens = (data: AuthorizationTokenPayload): TokenResponse => {
 	const access_token = signJWT(data, config.SECRET, { expiresIn: "5m" });
 	const refresh_token = signJWT(data, config.SECRET, { expiresIn: "30m" });
 	access_tokens.add(access_token);
@@ -31,7 +31,7 @@ const GenerateTokens = (data: AuthorizationTokenPayload): TokenResponse => {
 	return { access_token, refresh_token, expires_in: 300 };
 };
 
-export const Authorize = async (
+export const authorize = async (
 	req: Request<unknown, unknown, { [key: string]: string; response_type?: "code" | "token"; scope?: string }>,
 	res: Response
 ) => {
@@ -52,15 +52,15 @@ export const Authorize = async (
 
 		// TODO: validate scope and insert into payload
 		const payload: AuthorizationTokenPayload = { email, scope: [] };
-		if (req.body.response_type === "code") res.status(200).send(GenerateAuthorizationCode(payload));
-		else if (req.body.response_type === "token") res.status(200).json(GenerateTokens(payload));
+		if (req.body.response_type === "code") res.status(200).send(generateAuthorizationCode(payload));
+		else if (req.body.response_type === "token") res.status(200).json(generateTokens(payload));
 	} catch (error: unknown) {
 		if (error instanceof RequestError) res.status(error.status).send(error.message);
 		else throw error;
 	}
 };
 
-export const GetTokens = (
+export const getTokens = (
 	req: Request<
 		unknown,
 		unknown,
@@ -87,27 +87,21 @@ export const GetTokens = (
 		if (req.body.grant_type === "refresh_token" && !refresh_tokens.delete(req.body.refresh_token))
 			throw new RequestError("Invalid refresh_token", 400);
 
-		let jwt;
-		switch (req.body.grant_type) {
-			case "authorization_code":
-				jwt = req.body.code;
-				break;
-			case "refresh_token":
-				jwt = req.body.refresh_token;
-				break;
-		}
+		let token;
+		if (req.body.grant_type === "authorization_code") token = req.body.code;
+		else if (req.body.grant_type === "refresh_token") token = req.body.refresh_token;
 
-		const payload: AuthorizationTokenPayload = verifyJWT(jwt, config.SECRET) as JwtPayload;
+		const payload: AuthorizationTokenPayload = verifyJWT(token, config.SECRET) as JwtPayload;
 		if (!payload.email || !payload.scope) throw new RequestError("Malformed code", 400);
 		Object.keys(payload).forEach((key) => ["email", "scope"].includes(key) || delete payload[key]);
-		res.status(200).json(GenerateTokens(payload));
+		res.status(200).json(generateTokens(payload));
 	} catch (error: unknown) {
 		if (error instanceof RequestError) res.status(error.status).send(error.message);
 		else throw error;
 	}
 };
 
-export const ValidateAuthorizeRequest = (
+export const validateAuthorizeRequest = (
 	req: Request<
 		unknown,
 		unknown,
