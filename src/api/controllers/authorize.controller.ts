@@ -13,7 +13,7 @@ const access_tokens = new Set<string>();
 const refresh_tokens = new Set<string>();
 
 interface AuthorizationTokenPayload extends JwtPayload {
-	email?: string;
+	username?: string;
 	scope?: string[];
 }
 
@@ -43,15 +43,15 @@ export const authorize = async (
 
 		if (!["code", "token"].includes(req.body.response_type)) throw new RequestError("Invalid response_type", 400);
 
-		const [email, password] = Buffer.from(authorization_value, "base64").toString("utf8").split(/:(.*)/);
-		if (!email || !password) throw new RequestError("Invalid Authorization Header", 401);
+		const [username, password] = Buffer.from(authorization_value, "base64").toString("utf8").split(/:(.*)/);
+		if (!username || !password) throw new RequestError("Invalid Authorization Header", 401);
 
-		const users = await User.findAll({ where: { email } });
+		const users = await User.findAll({ where: { username } });
 		if (users.length === 0 || users.length > 1 || users[0].password !== password)
 			throw new RequestError("Incorrect credentials", 401);
 
 		// TODO: validate scope and insert into payload
-		const payload: AuthorizationTokenPayload = { email, scope: [] };
+		const payload: AuthorizationTokenPayload = { username, scope: [] };
 		if (req.body.response_type === "code") res.status(200).send(generateAuthorizationCode(payload));
 		else if (req.body.response_type === "token") res.status(200).json(generateTokens(payload));
 	} catch (error: unknown) {
@@ -92,8 +92,8 @@ export const getTokens = (
 		else if (req.body.grant_type === "refresh_token") token = req.body.refresh_token;
 
 		const payload: AuthorizationTokenPayload = verifyJWT(token, config.SECRET) as JwtPayload;
-		if (!payload.email || !payload.scope) throw new RequestError("Malformed code", 400);
-		Object.keys(payload).forEach((key) => ["email", "scope"].includes(key) || delete payload[key]);
+		if (!payload.username || !payload.scope) throw new RequestError("Malformed code", 400);
+		Object.keys(payload).forEach((key) => ["username", "scope"].includes(key) || delete payload[key]);
 		res.status(200).json(generateTokens(payload));
 	} catch (error: unknown) {
 		if (error instanceof RequestError) res.status(error.status).send(error.message);

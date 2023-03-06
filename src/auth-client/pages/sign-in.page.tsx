@@ -3,7 +3,7 @@ import { Box, Button, Flex, LoadingOverlay, PasswordInput, TextInput } from "@ma
 import { useForm, UseFormReturnType } from "@mantine/form";
 
 interface FormData {
-	email: string;
+	username: string;
 	password: string;
 }
 
@@ -14,20 +14,20 @@ export const SignInPage = ({
 }: {
 	loading?: boolean;
 	onCancel?: () => void;
-	onAuthorizeRequest?: (email: string, password: string) => void;
+	onAuthorizeRequest?: (username: string, password: string) => void;
 }): React.ReactElement => {
 	const form: UseFormReturnType<FormData> = useForm({
 		initialValues: {
-			email: "",
+			username: "",
 			password: "",
 		},
 		validate: {
-			email: (email) => (/^\S+@\S+$/.test(email) ? null : "Invalid email"),
+			username: (username) => (/^\w([\w.]*\w)?$/.test(username) ? null : "Invalid username"),
 			password: (password) => (password ? null : "Password cannot be blank"),
 		},
 	});
 
-	const handleSubmit = async (data: FormData) => onAuthorizeRequest && onAuthorizeRequest(data.email, data.password);
+	const handleSubmit = async (data: FormData) => onAuthorizeRequest && onAuthorizeRequest(data.username, data.password);
 
 	const BackButton = ({ hidden }: { hidden: boolean }) =>
 		hidden ? (
@@ -44,10 +44,10 @@ export const SignInPage = ({
 			<TextInput
 				autoFocus
 				disabled={loading}
-				label="Email"
+				label="Username"
 				variant="filled"
 				withAsterisk
-				{...form.getInputProps("email")}
+				{...form.getInputProps("username")}
 			/>
 			<PasswordInput
 				disabled={loading}

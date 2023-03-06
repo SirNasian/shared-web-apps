@@ -26,8 +26,8 @@ sequelize.authenticate();
 
 export class User extends Model<InferAttributes<User>, InferCreationAttributes<User>> {
 	declare id: string;
-	declare email: string;
-	declare name: string;
+	declare displayname: string;
+	declare username: string;
 	declare password: string;
 }
 User.init(
@@ -37,11 +37,11 @@ User.init(
 			allowNull: false,
 			primaryKey: true,
 		},
-		email: {
+		displayname: {
 			type: DataTypes.STRING,
 			allowNull: false,
 		},
-		name: {
+		username: {
 			type: DataTypes.STRING,
 			allowNull: false,
 		},

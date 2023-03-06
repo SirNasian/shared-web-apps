@@ -28,7 +28,7 @@ const Router = ({
 }: {
 	loading?: boolean;
 	page: Page;
-	onAuthorizeRequest?: (email: string, password: string) => void;
+	onAuthorizeRequest?: (username: string, password: string) => void;
 	onError?: (error: Error) => void;
 	onPageChange?: (page: Page) => void;
 }): React.ReactElement => {

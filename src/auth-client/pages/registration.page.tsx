@@ -7,8 +7,8 @@ import config from "../config";
 import { throwError } from "../../common/errors";
 
 interface FormData {
-	email: string;
-	name: string;
+	displayname: string;
+	username: string;
 	password: string;
 }
 
@@ -21,18 +21,18 @@ export const RegistrationPage = ({
 	loading?: boolean;
 	onCancel?: () => void;
 	onError?: (error: Error) => void;
-	onSuccess?: (email: string, password: string) => void;
+	onSuccess?: (username: string, password: string) => void;
 }): React.ReactElement => {
 	const [internalLoading, setInternalLoading] = React.useState<boolean>(false);
 	const form: UseFormReturnType<FormData> = useForm({
 		initialValues: {
-			email: "",
-			name: "",
+			displayname: "",
+			username: "",
 			password: "",
 		},
 		validate: {
-			email: (email) => (/^\S+@\S+$/.test(email) ? null : "Invalid email"),
-			name: (name) => (/^\w([\w ]+\w)?$/.test(name) ? null : "Invalid display name"),
+			displayname: (displayname) => (/^\w([\w. ]*\w)?$/.test(displayname) ? null : "Invalid display name"),
+			username: (username) => (/^\w([\w.]*\w)?$/.test(username) ? null : "Invalid username"),
 			password: (password) => (password ? null : "Password cannot be blank"),
 		},
 	});
@@ -44,13 +44,13 @@ export const RegistrationPage = ({
 		try {
 			const count = Number(
 				await window
-					.fetch(new URL(`/api/user/count?email=${encodeURIComponent(data.email)}`, config.API_URL).toString())
+					.fetch(new URL(`/api/user/count?username=${encodeURIComponent(data.username)}`, config.API_URL).toString())
 					.then((response) => response.text().then((message) => ({ status: response.status, message: message })))
 					.then(({ status, message }) => (status === 200 ? message : throwError(message)))
 					.catch(onError)
 			);
 			if (count > 0) {
-				form.setErrors({ email: "This email is already taken by another user" });
+				form.setErrors({ username: "This username is already taken by another user" });
 				return;
 			}
 
@@ -69,7 +69,7 @@ export const RegistrationPage = ({
 				color: "green",
 			});
 
-			onSuccess && onSuccess(data.email, data.password);
+			onSuccess && onSuccess(data.username, data.password);
 		} finally {
 			setInternalLoading(false);
 		}
@@ -90,18 +90,18 @@ export const RegistrationPage = ({
 			<TextInput
 				autoFocus
 				disabled={loading}
-				label="Email"
+				label="Display Name"
 				variant="filled"
 				withAsterisk
-				{...form.getInputProps("email")}
+				{...form.getInputProps("displayname")}
 			/>
 			<TextInput
 				disabled={loading}
-				label="Display Name"
+				label="Username"
 				mt="xs"
 				variant="filled"
 				withAsterisk
-				{...form.getInputProps("name")}
+				{...form.getInputProps("username")}
 			/>
 			<PasswordInput
 				disabled={loading}
