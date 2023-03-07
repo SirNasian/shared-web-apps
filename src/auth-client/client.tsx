@@ -1,10 +1,11 @@
 import React from "react";
 import { createRoot } from "react-dom/client";
-import { Center, ColorScheme, MantineProvider, MantineTheme, Paper } from "@mantine/core";
+import { Center, MantineProvider, Paper } from "@mantine/core";
 import { notifications, Notifications } from "@mantine/notifications";
 
 import config from "./config";
 import { TokenResponse } from "../common/models";
+import { root_style, theme } from "../common/styles";
 import { LandingPage, RegistrationPage, SignInPage } from "./pages";
 import "./polyfill";
 
@@ -14,10 +15,6 @@ enum Page {
 	SIGN_IN = "sign-in",
 	SCOPE_APPROVAL = "scope-approval",
 }
-
-const body_style = (theme: MantineTheme) => ({
-	background: theme.colorScheme === "dark" ? theme.colors.dark[8] : theme.colors.gray[1],
-});
 
 const Router = ({
 	loading,
@@ -60,7 +57,6 @@ const Router = ({
 };
 
 const Root = (): React.ReactElement => {
-	const [theme] = React.useState<ColorScheme>("dark");
 	const [page, setPage] = React.useState<Page>(Page.LANDING);
 	const [loading, setLoading] = React.useState<boolean>(false);
 
@@ -126,9 +122,9 @@ const Root = (): React.ReactElement => {
 	};
 
 	return (
-		<MantineProvider withGlobalStyles withNormalizeCSS theme={{ colorScheme: theme, loader: "dots" }}>
+		<MantineProvider withGlobalStyles withNormalizeCSS theme={theme}>
 			<Notifications />
-			<Center h="100vh" sx={body_style}>
+			<Center h="100vh" sx={root_style}>
 				<Paper p="lg" pos="relative" radius="lg" w={getPreferredWidth(page)}>
 					<Router
 						loading={loading}

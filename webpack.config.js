@@ -61,4 +61,34 @@ module.exports = [
 		plugins: [new HTMLWebpackPlugin({ title: "Auth Client", template: "src/common/index.html" })],
 		target: "web",
 	},
+	{
+		entry: {
+			client: { import: "./src/shopping-list/client.tsx", dependOn: "vendor" },
+			vendor: [
+				"@emotion/react",
+				"@mantine/core",
+				"@mantine/notifications",
+				"react",
+				"react-dom",
+			],
+		},
+		module: {
+			rules: [
+				{
+					test: /\.tsx?$/,
+					use: "ts-loader",
+					exclude: /node_modules/,
+				},
+			],
+		},
+		resolve: {
+			extensions: [".tsx", ".ts", ".js"],
+		},
+		output: {
+			filename: "js/[name].js",
+			path: path.resolve(__dirname, "dist", "shopping-list"),
+		},
+		plugins: [new HTMLWebpackPlugin({ title: "Shopping List", template: "src/common/index.html" })],
+		target: "web",
+	},
 ];
