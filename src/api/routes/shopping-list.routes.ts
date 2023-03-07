@@ -1,4 +1,5 @@
 import { Router, json as expressJSON } from "express";
+
 import {
 	getShoppingListEditors,
 	getShoppingListItems,
@@ -7,11 +8,12 @@ import {
 	updateShoppingListItems,
 	updateShoppingLists,
 } from "../controllers/shopping-list.controller";
+import { AuthorizeMiddleware } from "../middleware/authorize.middleware";
 
 export const ShoppingListRouter = Router();
 const bodyJSON = expressJSON();
 
-// TODO: authenticate/authorize with middleware
+ShoppingListRouter.use("/", AuthorizeMiddleware);
 
 ShoppingListRouter.post("/", bodyJSON, updateShoppingLists);
 ShoppingListRouter.put("/:list_id", bodyJSON, updateShoppingLists);

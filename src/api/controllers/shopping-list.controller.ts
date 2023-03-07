@@ -1,8 +1,12 @@
-import { Response, Request } from "express";
+import { Response } from "express";
 
 import { RequestError } from "../../common/errors";
+import { AuthorizedRequest } from "../middleware/authorize.middleware";
 
-export const getShoppingListEditors = (req: Request<{ list_id: string; editor_id?: string }>, res: Response) => {
+export const getShoppingListEditors = (
+	req: AuthorizedRequest<{ list_id: string; editor_id?: string }>,
+	res: Response
+) => {
 	try {
 		// TODO: implement this
 		res.status(501).json({ params: req.params });
@@ -13,7 +17,7 @@ export const getShoppingListEditors = (req: Request<{ list_id: string; editor_id
 	}
 };
 
-export const getShoppingListItems = (req: Request<{ list_id: string; item_id?: string }>, res: Response) => {
+export const getShoppingListItems = (req: AuthorizedRequest<{ list_id: string; item_id?: string }>, res: Response) => {
 	try {
 		// TODO: implement this
 		res.status(501).json({ params: req.params });
@@ -24,7 +28,7 @@ export const getShoppingListItems = (req: Request<{ list_id: string; item_id?: s
 	}
 };
 
-export const getShoppingLists = (req: Request<{ list_id?: string }>, res: Response) => {
+export const getShoppingLists = (req: AuthorizedRequest<{ list_id?: string }>, res: Response) => {
 	try {
 		// TODO: implement this
 		res.status(501).json({ params: req.params });
@@ -36,7 +40,7 @@ export const getShoppingLists = (req: Request<{ list_id?: string }>, res: Respon
 };
 
 export const updateShoppingListEditors = (
-	req: Request<{ list_id: string; editor_id?: string }, unknown, { editors?: string[] }>,
+	req: AuthorizedRequest<{ list_id: string; editor_id?: string }, unknown, { editors?: string[] }>,
 	res: Response
 ) => {
 	try {
@@ -50,7 +54,7 @@ export const updateShoppingListEditors = (
 };
 
 export const updateShoppingListItems = (
-	req: Request<
+	req: AuthorizedRequest<
 		{ list_id: string; item_id?: string },
 		unknown,
 		{ name: string; quantity: number; checked: boolean; editors?: string[] }
@@ -68,7 +72,7 @@ export const updateShoppingListItems = (
 };
 
 export const updateShoppingLists = (
-	req: Request<{ list_id?: string }, unknown, { name: string; public: boolean }>,
+	req: AuthorizedRequest<{ list_id?: string }, unknown, { name: string; public: boolean }>,
 	res: Response
 ) => {
 	try {

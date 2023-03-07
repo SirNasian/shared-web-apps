@@ -9,10 +9,10 @@ import { Users } from "../database";
 // TODO: move these to a less volatile storage solution
 // TODO: allow revoking of authorization_codes, access_tokens, and refresh_tokens
 const authorization_codes = new Set<string>();
-const access_tokens = new Set<string>();
+export const access_tokens = new Set<string>();
 const refresh_tokens = new Set<string>();
 
-interface AuthorizationTokenPayload extends JwtPayload {
+export interface AuthorizationTokenPayload extends JwtPayload {
 	username?: string;
 	scope?: string[];
 }
