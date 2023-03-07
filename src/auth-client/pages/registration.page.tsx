@@ -44,7 +44,7 @@ export const RegistrationPage = ({
 		try {
 			const count = Number(
 				await window
-					.fetch(new URL(`/api/user/count?username=${encodeURIComponent(data.username)}`, config.API_URL).toString())
+					.fetch(new URL(`/api/users/count?username=${encodeURIComponent(data.username)}`, config.API_URL).toString())
 					.then((response) => response.text().then((message) => ({ status: response.status, message: message })))
 					.then(({ status, message }) => (status === 200 ? message : throwError(message)))
 					.catch(onError)
@@ -55,7 +55,7 @@ export const RegistrationPage = ({
 			}
 
 			await window
-				.fetch(new URL("/api/user/register", config.API_URL).toString(), {
+				.fetch(new URL("/api/users/register", config.API_URL).toString(), {
 					method: "POST",
 					headers: { "Content-Type": "application/json" },
 					body: JSON.stringify(data),
