@@ -24,13 +24,13 @@ switch (dialect) {
 const sequelize = new Sequelize(config.DATABASE_URI, { dialect, dialectModule, logging });
 sequelize.authenticate();
 
-export class User extends Model<InferAttributes<User>, InferCreationAttributes<User>> {
+export class Users extends Model<InferAttributes<Users>, InferCreationAttributes<Users>> {
 	declare id: string;
 	declare displayname: string;
 	declare username: string;
 	declare password: string;
 }
-User.init(
+Users.init(
 	{
 		id: {
 			type: DataTypes.STRING,
