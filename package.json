@@ -1,5 +1,9 @@
 {
-	"scripts": {},
+	"scripts": {
+		"build": "webpack --mode production",
+		"start": "cd dist && node ../node_modules/nodemon/bin/nodemon.js api-server.js",
+		"watch": "webpack --watch --progress --mode development"
+	},
 	"dependencies": {
 		"@emotion/react": "^11.10.6",
 		"@mantine/core": "^6.0.0",
