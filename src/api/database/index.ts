@@ -56,4 +56,112 @@ Users.init(
 	}
 );
 
+export class ShoppingLists extends Model<InferAttributes<ShoppingLists>, InferCreationAttributes<ShoppingLists>> {
+	declare id: string;
+	declare name: string;
+	declare owner: string;
+	declare public: boolean;
+}
+ShoppingLists.init(
+	{
+		id: {
+			type: DataTypes.STRING,
+			allowNull: false,
+			primaryKey: true,
+		},
+		name: {
+			type: DataTypes.STRING,
+			allowNull: false,
+		},
+		owner: {
+			type: DataTypes.STRING,
+			allowNull: false,
+		},
+		public: {
+			type: DataTypes.BOOLEAN,
+			allowNull: false,
+		},
+	},
+	{
+		tableName: "shoppinglist_lists",
+		sequelize,
+	}
+);
+
+export class ShoppingListItems extends Model<
+	InferAttributes<ShoppingListItems>,
+	InferCreationAttributes<ShoppingListItems>
+> {
+	declare id: string;
+	declare list_id: string;
+	declare name: string;
+	declare quantity: number;
+	declare checked: boolean;
+}
+ShoppingListItems.init(
+	{
+		id: {
+			type: DataTypes.STRING,
+			allowNull: false,
+			primaryKey: true,
+		},
+		list_id: {
+			type: DataTypes.STRING,
+			references: {
+				model: ShoppingLists,
+				key: "id",
+			},
+			allowNull: false,
+		},
+		name: {
+			type: DataTypes.STRING,
+			allowNull: false,
+		},
+		quantity: {
+			type: DataTypes.NUMBER,
+			allowNull: false,
+		},
+		checked: {
+			type: DataTypes.BOOLEAN,
+			allowNull: false,
+		},
+	},
+	{
+		tableName: "shoppinglist_items",
+		sequelize,
+	}
+);
+
+export class ShoppingListEditors extends Model<
+	InferAttributes<ShoppingListEditors>,
+	InferCreationAttributes<ShoppingListEditors>
+> {
+	declare user_id: string;
+	declare list_id: string;
+}
+ShoppingListEditors.init(
+	{
+		user_id: {
+			type: DataTypes.STRING,
+			references: {
+				model: Users,
+				key: "id",
+			},
+			allowNull: false,
+		},
+		list_id: {
+			type: DataTypes.STRING,
+			references: {
+				model: ShoppingLists,
+				key: "id",
+			},
+			allowNull: false,
+		},
+	},
+	{
+		tableName: "shoppinglist_editors",
+		sequelize,
+	}
+);
+
 sequelize.sync();
