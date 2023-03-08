@@ -13,8 +13,9 @@ export const access_tokens = new Set<string>();
 const refresh_tokens = new Set<string>();
 
 export interface AuthorizationTokenPayload extends JwtPayload {
-	username?: string;
-	scope?: string[];
+	id: string;
+	username: string;
+	scope: string[];
 }
 
 const generateAuthorizationCode = (data: AuthorizationTokenPayload): string => {
@@ -51,7 +52,7 @@ export const authorize = async (
 			throw new RequestError("Incorrect credentials", 401);
 
 		// TODO: validate scope and insert into payload
-		const payload: AuthorizationTokenPayload = { username, scope: [] };
+		const payload: AuthorizationTokenPayload = { id: users[0].id, username, scope: [] };
 		if (req.body.response_type === "code") res.status(200).send(generateAuthorizationCode(payload));
 		else if (req.body.response_type === "token") res.status(200).json(generateTokens(payload));
 	} catch (error: unknown) {
@@ -91,8 +92,8 @@ export const getTokens = (
 		if (req.body.grant_type === "authorization_code") token = req.body.code;
 		else if (req.body.grant_type === "refresh_token") token = req.body.refresh_token;
 
-		const payload: AuthorizationTokenPayload = verifyJWT(token, config.SECRET) as JwtPayload;
-		if (!payload.username || !payload.scope) throw new RequestError("Malformed code", 400);
+		const payload = verifyJWT(token, config.SECRET) as AuthorizationTokenPayload;
+		if (!payload.id || !payload.username || !payload.scope) throw new RequestError("Malformed code", 400);
 		Object.keys(payload).forEach((key) => ["username", "scope"].includes(key) || delete payload[key]);
 		res.status(200).json(generateTokens(payload));
 	} catch (error: unknown) {

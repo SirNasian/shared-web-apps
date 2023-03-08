@@ -21,7 +21,7 @@ switch (dialect) {
 		throw new Error(`Unsupported dialect "${dialect}"`);
 }
 
-const sequelize = new Sequelize(config.DATABASE_URI, { dialect, dialectModule, logging });
+export const sequelize = new Sequelize(config.DATABASE_URI, { dialect, dialectModule, logging });
 sequelize.authenticate();
 
 export class Users extends Model<InferAttributes<Users>, InferCreationAttributes<Users>> {
@@ -118,7 +118,7 @@ ShoppingListItems.init(
 			allowNull: false,
 		},
 		quantity: {
-			type: DataTypes.NUMBER,
+			type: DataTypes.INTEGER,
 			allowNull: false,
 		},
 		checked: {
@@ -160,6 +160,38 @@ ShoppingListEditors.init(
 	},
 	{
 		tableName: "shoppinglist_editors",
+		sequelize,
+	}
+);
+
+export class ShoppingListViewers extends Model<
+	InferAttributes<ShoppingListViewers>,
+	InferCreationAttributes<ShoppingListViewers>
+> {
+	declare user_id: string;
+	declare list_id: string;
+}
+ShoppingListViewers.init(
+	{
+		user_id: {
+			type: DataTypes.STRING,
+			references: {
+				model: Users,
+				key: "id",
+			},
+			allowNull: false,
+		},
+		list_id: {
+			type: DataTypes.STRING,
+			references: {
+				model: ShoppingLists,
+				key: "id",
+			},
+			allowNull: false,
+		},
+	},
+	{
+		tableName: "shoppinglist_viewers",
 		sequelize,
 	}
 );

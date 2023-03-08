@@ -1,10 +1,10 @@
 import { Router, json as expressJSON } from "express";
 
 import {
-	getShoppingListEditors,
 	getShoppingListItems,
 	getShoppingLists,
-	updateShoppingListEditors,
+	updateShoppingList,
+	updateShoppingListItem,
 	updateShoppingListItems,
 	updateShoppingLists,
 } from "../controllers/shopping-list.controller";
@@ -15,17 +15,17 @@ const bodyJSON = expressJSON();
 
 ShoppingListRouter.use("/", AuthorizeMiddleware);
 
-ShoppingListRouter.post("/", bodyJSON, updateShoppingLists);
-ShoppingListRouter.put("/:list_id", bodyJSON, updateShoppingLists);
-ShoppingListRouter.get("/", getShoppingLists);
-ShoppingListRouter.get("/:list_id", getShoppingLists);
+ShoppingListRouter.get("/items", getShoppingListItems);
+ShoppingListRouter.post("/items", bodyJSON, updateShoppingListItems);
+ShoppingListRouter.get("/items/:id", getShoppingListItems);
+ShoppingListRouter.put("/items/:id", bodyJSON, updateShoppingListItem);
 
+ShoppingListRouter.get("/:list_id/items", getShoppingListItems);
 ShoppingListRouter.post("/:list_id/items", bodyJSON, updateShoppingListItems);
-ShoppingListRouter.put("/:list_id/items/:item_id", bodyJSON, updateShoppingListItems);
-ShoppingListRouter.get("/:list_id/items/", getShoppingListItems);
-ShoppingListRouter.get("/:list_id/items/:item_id", getShoppingListItems);
+ShoppingListRouter.get("/:list_id/items/:id", getShoppingListItems);
+ShoppingListRouter.put("/:list_id/items/:id", bodyJSON, updateShoppingListItem);
 
-ShoppingListRouter.post("/:list_id/editors", bodyJSON, updateShoppingListEditors);
-ShoppingListRouter.put("/:list_id/editors/:editor_id", bodyJSON, updateShoppingListEditors);
-ShoppingListRouter.get("/:list_id/editors/", getShoppingListEditors);
-ShoppingListRouter.get("/:list_id/editors/:editor_id", getShoppingListEditors);
+ShoppingListRouter.get("/", getShoppingLists);
+ShoppingListRouter.post("/", bodyJSON, updateShoppingLists);
+ShoppingListRouter.get("/:id", getShoppingLists);
+ShoppingListRouter.put("/:id", bodyJSON, updateShoppingList);
