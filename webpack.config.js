@@ -3,10 +3,7 @@ const HTMLWebpackPlugin = require("html-webpack-plugin");
 
 module.exports = [
 	{
-		entry: {
-			"api-server": { import: "./src/api/server.ts", dependOn: "lib/vendor" },
-			"lib/vendor": ["dotenv", "express", "jsonwebtoken", "mariadb", "mysql2", "pg-hstore", "sequelize"],
-		},
+		entry: { "api-server": "./src/api/server.ts" },
 		module: {
 			rules: [
 				{
@@ -24,21 +21,15 @@ module.exports = [
 			path: path.resolve(__dirname, "dist"),
 		},
 		target: "node",
+		optimization: {
+			splitChunks: {
+				chunks: "all",
+				name: "vendor",
+			},
+		},
 	},
 	{
-		entry: {
-			client: { import: "./src/auth-client/client.tsx", dependOn: "vendor" },
-			vendor: [
-				"@emotion/react",
-				"@mantine/core",
-				"@mantine/form",
-				"@mantine/hooks",
-				"@mantine/notifications",
-				"buffer",
-				"react",
-				"react-dom",
-			],
-		},
+		entry: { client: "./src/auth-client/client.tsx" },
 		module: {
 			rules: [
 				{
@@ -60,18 +51,15 @@ module.exports = [
 		},
 		plugins: [new HTMLWebpackPlugin({ title: "Auth Client", template: "src/common/index.html" })],
 		target: "web",
+		optimization: {
+			splitChunks: {
+				chunks: "all",
+				name: "vendor",
+			},
+		},
 	},
 	{
-		entry: {
-			client: { import: "./src/shopping-list/client.tsx", dependOn: "vendor" },
-			vendor: [
-				"@emotion/react",
-				"@mantine/core",
-				"@mantine/notifications",
-				"react",
-				"react-dom",
-			],
-		},
+		entry: { client: "./src/shopping-list/client.tsx" },
 		module: {
 			rules: [
 				{
@@ -90,5 +78,11 @@ module.exports = [
 		},
 		plugins: [new HTMLWebpackPlugin({ title: "Shopping List", template: "src/common/index.html" })],
 		target: "web",
+		optimization: {
+			splitChunks: {
+				chunks: "all",
+				name: "vendor",
+			},
+		},
 	},
 ];
