@@ -6,15 +6,14 @@ import { sequelize, ShoppingListItems, ShoppingLists } from "../database";
 import { RequestError } from "../../common/errors";
 import { AuthorizedRequest } from "../middleware/authorize.middleware";
 
-const checkUserCanViewShoppingList = async (user_id: string, list_id: string): Promise<boolean> =>
+const checkUserCanEditShoppingList = async (user_id: string, list_id: string): Promise<boolean> =>
 	Boolean(
 		(
 			await sequelize.query<{ visible: number }>(
 				`
 					SELECT (COUNT(*) > 0) AS visible FROM \`shoppinglist_lists\` \`lists\`
-					LEFT JOIN \`shoppinglist_viewers\` \`viewers\` ON (\`viewers\`.\`list_id\` = \`lists\`.\`id\`)
 					LEFT JOIN \`shoppinglist_editors\` \`editors\` ON (\`editors\`.\`list_id\` = \`lists\`.\`id\`)
-					WHERE (:user_id IN (\`lists\`.\`owner\`, \`viewers\`.\`user_id\`, \`editors\`.\`user_id\`))
+					WHERE (:user_id IN (\`lists\`.\`owner\`, \`editors\`.\`user_id\`))
 					AND   (:list_id = \`lists\`.\`id\`);
 				`,
 				{
@@ -39,8 +38,11 @@ export const getShoppingLists = async (
 						SELECT \`lists\`.* FROM \`shoppinglist_lists\` \`lists\`
 						LEFT JOIN \`shoppinglist_viewers\` \`viewers\` ON (\`viewers\`.\`list_id\` = \`lists\`.\`id\`)
 						LEFT JOIN \`shoppinglist_editors\` \`editors\` ON (\`editors\`.\`list_id\` = \`lists\`.\`id\`)
-						WHERE (:user_id IN (\`lists\`.\`owner\`, \`viewers\`.\`user_id\`, \`editors\`.\`user_id\`))
-						${replacements.list_id ? "AND (:list_id = `lists`.`id`)" : ""};
+						WHERE (
+							(\`lists\`.\`public\`) OR
+							(:user_id IN (\`lists\`.\`owner\`, \`viewers\`.\`user_id\`, \`editors\`.\`user_id\`))
+						)
+						${replacements.list_id ? " AND (:list_id = `lists`.`id`)" : ""};
 					`,
 					{ replacements, type: QueryTypes.SELECT }
 				)
@@ -58,7 +60,7 @@ export const updateShoppingList = async (
 	res: Response
 ) => {
 	try {
-		if (!checkUserCanViewShoppingList(req.user.id, req.params.id)) throw new RequestError("Forbidden", 403);
+		if (!(await checkUserCanEditShoppingList(req.user.id, req.params.id))) throw new RequestError("Forbidden", 403);
 		if (req.body.name === undefined) throw new RequestError("Missing Field: name", 400);
 		const id = await ShoppingLists.upsert({
 			id: req.params.id,
@@ -81,19 +83,22 @@ export const updateShoppingLists = async (
 	const transaction = await sequelize.transaction();
 	try {
 		if (!Array.isArray(req.body)) throw new RequestError("Malformed Request", 400);
-		const list_ids = await ShoppingLists.bulkCreate(
-			req.body.map((list) => {
-				if (list.id && !checkUserCanViewShoppingList(req.user.id, list.id)) throw new RequestError("Forbidden", 403);
-				if (list.name === undefined) throw new RequestError("Missing Field: name", 400);
-				return {
-					id: list.id ?? uuidv4(),
-					name: list.name,
-					owner: req.user.id,
-					public: Boolean(list.public),
-				};
-			}),
-			{ updateOnDuplicate: ["id"] }
-		).then((lists) => lists.map((list) => list.id));
+		const lists: { [key: string]: string | boolean }[] = [];
+		for (const list of req.body) {
+			if (list.id && !(await checkUserCanEditShoppingList(req.user.id, list.id)))
+				throw new RequestError("Forbidden", 403);
+			if (list.name === undefined) throw new RequestError("Missing Field: name", 400);
+			lists.push({
+				id: list.id ?? uuidv4(),
+				name: list.name,
+				owner: req.user.id,
+				public: Boolean(list.public),
+			});
+		}
+		const list_ids = await ShoppingLists.bulkCreate(lists, {
+			updateOnDuplicate: ["name", "public"],
+			transaction,
+		}).then((lists) => lists.map((list) => list.id));
 		transaction.commit();
 		res.status(200).json(list_ids);
 	} catch (error: unknown) {
@@ -143,7 +148,6 @@ export const getShoppingListItems = async (
 		const replacements = { item_id: req.params.id, list_id: req.params.list_id, user_id: req.user.id };
 		!replacements.item_id && delete replacements.item_id;
 		!replacements.list_id && delete replacements.list_id;
-		console.log(replacements);
 		res.status(200).json(
 			await sequelize
 				.query<ShoppingListItems>(
@@ -152,7 +156,10 @@ export const getShoppingListItems = async (
 						LEFT JOIN \`shoppinglist_lists\` \`lists\` ON (\`lists\`.\`id\` = \`items\`.\`list_id\`)
 						LEFT JOIN \`shoppinglist_viewers\` \`viewers\` ON (\`viewers\`.\`list_id\` = \`lists\`.\`id\`)
 						LEFT JOIN \`shoppinglist_editors\` \`editors\` ON (\`editors\`.\`list_id\` = \`lists\`.\`id\`)
-						WHERE (:user_id IN (\`lists\`.\`owner\`, \`viewers\`.\`user_id\`, \`editors\`.\`user_id\`))
+						WHERE (
+							(\`lists\`.\`public\`) OR
+							(:user_id IN (\`lists\`.\`owner\`, \`viewers\`.\`user_id\`, \`editors\`.\`user_id\`))
+						)
 						${replacements.list_id ? "AND (:list_id = `lists`.`id`)" : ""}
 						${replacements.item_id ? "AND (:item_id = `items`.`id`)" : ""};
 					`,
@@ -175,11 +182,10 @@ export const updateShoppingListItem = async (
 	>,
 	res: Response
 ) => {
-	console.log(req.params);
 	try {
 		const list_id = req.params.list_id ?? req.body.list_id;
 		if (!list_id) throw new RequestError("Missing Field: list_id", 400);
-		if (!checkUserCanViewShoppingList(req.user.id, list_id)) throw new RequestError("Forbidden", 403);
+		if (!(await checkUserCanEditShoppingList(req.user.id, list_id))) throw new RequestError("Forbidden", 403);
 		if (!req.body.name) throw new RequestError("Missing Field: name", 400);
 		const id = await ShoppingListItems.upsert({
 			list_id,
@@ -207,22 +213,24 @@ export const updateShoppingListItems = async (
 	const transaction = await sequelize.transaction();
 	try {
 		if (!Array.isArray(req.body)) throw new RequestError("Malformed Request", 400);
-		const item_ids = await ShoppingLists.bulkCreate(
-			req.body.map((item) => {
-				const list_id = req.params.list_id ?? item.list_id;
-				if (!list_id) throw new RequestError("Missing Field: list_id", 400);
-				if (!checkUserCanViewShoppingList(req.user.id, list_id)) throw new RequestError("Forbidden", 403);
-				if (!item.name) throw new RequestError("Missing Field: name", 400);
-				return {
-					list_id,
-					id: item.id ?? uuidv4(),
-					name: item.name,
-					quantity: item.quantity ?? 1,
-					checked: Boolean(item.checked),
-				};
-			}),
-			{ updateOnDuplicate: ["id"] }
-		).then((items) => items.map((item) => item.id));
+		const items: object[] = [];
+		for (const item of req.body) {
+			const list_id = req.params.list_id ?? item.list_id;
+			if (!list_id) throw new RequestError("Missing Field: list_id", 400);
+			if (!(await checkUserCanEditShoppingList(req.user.id, list_id))) throw new RequestError("Forbidden", 403);
+			if (!item.name) throw new RequestError("Missing Field: name", 400);
+			items.push({
+				list_id,
+				id: item.id ?? uuidv4(),
+				name: item.name,
+				quantity: item.quantity ?? 1,
+				checked: Boolean(item.checked),
+			});
+		}
+		const item_ids = await ShoppingListItems.bulkCreate(items, {
+			updateOnDuplicate: ["name", "quantity", "checked"],
+			transaction,
+		}).then((items) => items.map((item) => item.id));
 		transaction.commit();
 		res.status(200).json(item_ids);
 	} catch (error: unknown) {
