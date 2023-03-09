@@ -1,6 +1,7 @@
 import { Router, json as expressJSON } from "express";
 
 import {
+	deleteShoppingLists,
 	getShoppingListItems,
 	getShoppingLists,
 	updateShoppingList,
@@ -27,5 +28,7 @@ ShoppingListRouter.put("/:list_id/items/:id", bodyJSON, updateShoppingListItem);
 
 ShoppingListRouter.get("/", getShoppingLists);
 ShoppingListRouter.post("/", bodyJSON, updateShoppingLists);
+ShoppingListRouter.delete("/", bodyJSON, deleteShoppingLists);
 ShoppingListRouter.get("/:id", getShoppingLists);
 ShoppingListRouter.put("/:id", bodyJSON, updateShoppingList);
+ShoppingListRouter.delete("/:id", bodyJSON, deleteShoppingLists);

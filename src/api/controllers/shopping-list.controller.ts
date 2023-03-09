@@ -104,6 +104,37 @@ export const updateShoppingLists = async (
 	}
 };
 
+export const deleteShoppingLists = async (
+	req: AuthorizedRequest<{ id?: string }, unknown, string[]>,
+	res: Response
+) => {
+	const transaction = await sequelize.transaction();
+	try {
+		const list_ids = req.params.id ? [req.params.id] : req.body ?? undefined;
+		if (!list_ids || !Array.isArray(list_ids)) throw new RequestError("Malformed Request", 400);
+		const replacements = { list_ids, user_id: req.user.id };
+		const affected_rows = await sequelize
+			.query(
+				`
+					DELETE \`lists\` FROM \`shoppinglist_lists\` \`lists\`
+					LEFT JOIN \`shoppinglist_editors\` \`editors\` ON (\`editors\`.\`list_id\` = \`lists\`.\`id\`)
+					WHERE (:user_id IN (\`lists\`.\`owner\`, \`editors\`.\`user_id\`))
+					${replacements.list_ids ? "AND (`lists`.`id`) IN (:list_ids)" : ""};
+				`,
+				{ replacements, transaction }
+			)
+			.then(([metadata]) => (metadata as unknown as { affectedRows: number }).affectedRows);
+		if (affected_rows !== list_ids.length) throw new RequestError("Forbidden", 403);
+		transaction.commit();
+		res.sendStatus(200);
+	} catch (error: unknown) {
+		transaction.rollback();
+		if (error instanceof RequestError) res.status(error.status).send(`${error.name}: ${error.message}`);
+		else if (error instanceof Error) res.status(500).send(`${error.name}: ${error.message}`);
+		else throw error;
+	}
+};
+
 export const getShoppingListItems = async (
 	req: AuthorizedRequest<{ [key: string]: string; list_id?: string; id?: string }>,
 	res: Response

@@ -107,10 +107,6 @@ ShoppingListItems.init(
 		},
 		list_id: {
 			type: DataTypes.STRING,
-			references: {
-				model: ShoppingLists,
-				key: "id",
-			},
 			allowNull: false,
 		},
 		name: {
@@ -143,18 +139,10 @@ ShoppingListEditors.init(
 	{
 		user_id: {
 			type: DataTypes.STRING,
-			references: {
-				model: Users,
-				key: "id",
-			},
 			allowNull: false,
 		},
 		list_id: {
 			type: DataTypes.STRING,
-			references: {
-				model: ShoppingLists,
-				key: "id",
-			},
 			allowNull: false,
 		},
 	},
@@ -175,18 +163,10 @@ ShoppingListViewers.init(
 	{
 		user_id: {
 			type: DataTypes.STRING,
-			references: {
-				model: Users,
-				key: "id",
-			},
 			allowNull: false,
 		},
 		list_id: {
 			type: DataTypes.STRING,
-			references: {
-				model: ShoppingLists,
-				key: "id",
-			},
 			allowNull: false,
 		},
 	},
@@ -195,5 +175,11 @@ ShoppingListViewers.init(
 		sequelize,
 	}
 );
+
+ShoppingLists.hasMany(ShoppingListItems, { foreignKey: "list_id", onDelete: "cascade" });
+ShoppingLists.hasMany(ShoppingListEditors, { foreignKey: "list_id", onDelete: "cascade" });
+ShoppingLists.hasMany(ShoppingListViewers, { foreignKey: "list_id", onDelete: "cascade" });
+Users.hasMany(ShoppingListEditors, { foreignKey: "user_id", onDelete: "cascade" });
+Users.hasMany(ShoppingListViewers, { foreignKey: "user_id", onDelete: "cascade" });
 
 sequelize.sync();
