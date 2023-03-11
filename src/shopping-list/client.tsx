@@ -43,7 +43,7 @@ const Root = (): React.ReactElement => {
 		<MantineProvider withGlobalStyles withNormalizeCSS theme={theme}>
 			<Notifications />
 			<Center h="100vh" sx={root_style}>
-				<Paper p="lg" pos="relative" radius="lg" w="480px">
+				<Paper mah="100%" p="lg" pos="relative" radius="lg" sx={{ display: "flex" }} w="480px">
 					<LoadingOverlay visible={loading} />
 					<Router page={page} onLoadingChange={setLoading} onPageChange={setPage} />
 				</Paper>
