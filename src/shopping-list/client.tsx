@@ -10,7 +10,15 @@ enum Page {
 	EDITOR = "editor",
 }
 
-const Router = ({ page, onPageChange }: { page: Page; onPageChange?: (page: Page) => void }): React.ReactElement => {
+const Router = ({
+	page,
+	onLoadingChange,
+	onPageChange,
+}: {
+	page: Page;
+	onLoadingChange?: (loading: boolean) => void;
+	onPageChange?: (page: Page) => void;
+}): React.ReactElement => {
 	switch (page) {
 		case Page.OVERVIEW:
 		case Page.EDITOR:
@@ -21,14 +29,15 @@ const Router = ({ page, onPageChange }: { page: Page; onPageChange?: (page: Page
 
 const Root = (): React.ReactElement => {
 	const [page, setPage] = React.useState<Page>(Page.EDITOR);
+	const [loading, setLoading] = React.useState<boolean>(false);
 
 	return (
 		<MantineProvider withGlobalStyles withNormalizeCSS theme={theme}>
 			<Notifications />
 			<Center h="100vh" sx={root_style}>
 				<Paper p="lg" pos="relative" radius="lg" w="480px">
-					<LoadingOverlay visible={true} />
-					<Router page={page} onPageChange={setPage} />
+					<LoadingOverlay visible={loading} />
+					<Router page={page} onLoadingChange={setLoading} onPageChange={setPage} />
 				</Paper>
 			</Center>
 		</MantineProvider>
