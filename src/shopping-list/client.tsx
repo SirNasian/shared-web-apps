@@ -4,6 +4,7 @@ import { Center, LoadingOverlay, MantineProvider, Paper } from "@mantine/core";
 import { Notifications } from "@mantine/notifications";
 
 import { root_style, theme } from "../common/styles";
+import { EditorPage, OverviewPage } from "./pages";
 
 enum Page {
 	OVERVIEW = "overview",
@@ -19,16 +20,23 @@ const Router = ({
 	onLoadingChange?: (loading: boolean) => void;
 	onPageChange?: (page: Page) => void;
 }): React.ReactElement => {
+	const [list_id, setListID] = React.useState<string>(undefined);
+	const handleSelectList = (list_id: string) => {
+		setListID(list_id);
+		onPageChange(Page.EDITOR);
+	};
 	switch (page) {
 		case Page.OVERVIEW:
+			return <OverviewPage onLoadingChange={onLoadingChange} onSelectList={handleSelectList} />;
 		case Page.EDITOR:
+			return <EditorPage list_id={list_id} />;
 		default:
 			return null;
 	}
 };
 
 const Root = (): React.ReactElement => {
-	const [page, setPage] = React.useState<Page>(Page.EDITOR);
+	const [page, setPage] = React.useState<Page>(Page.OVERVIEW);
 	const [loading, setLoading] = React.useState<boolean>(false);
 
 	return (
