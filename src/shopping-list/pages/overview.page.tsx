@@ -1,5 +1,6 @@
 import React from "react";
-import { Box, Button, Card, Divider, Flex, TextInput } from "@mantine/core";
+import { Box, Button, Card, Checkbox, Divider, Flex, Modal, TextInput } from "@mantine/core";
+import { useForm } from "@mantine/form";
 
 import config from "../config";
 
@@ -11,7 +12,7 @@ interface ShoppingList {
 	public: boolean;
 }
 
-const ShoppingListsComponent = ({
+const ShoppingListComponents = ({
 	lists,
 	search,
 	onSelectList,
@@ -32,6 +33,35 @@ const ShoppingListsComponent = ({
 	</Box>
 );
 
+const CreateShoppingListModal = ({ open, onClose }: { open: boolean; onClose?: () => void }) => {
+	const form = useForm<{ name: string; public: boolean }>({
+		initialValues: {
+			name: "",
+			public: true,
+		},
+		validate: {
+			name: (name) => (name.trim() === "" ? "Name cannot be blank!" : null),
+		},
+	});
+
+	const handleSubmit = (data: { name: string; public: boolean }) => {
+		// TODO: implement this
+		console.log(data);
+	};
+
+	return (
+		<Modal centered opened={open} title="Create Shopping List" onClose={onClose}>
+			<form onSubmit={form.onSubmit(handleSubmit)}>
+				<TextInput placeholder="Name" withAsterisk {...form.getInputProps("name")} />
+				<Flex mt="xs" justify="space-between">
+					<Checkbox label="Public" {...form.getInputProps("public")} />
+					<Button type="submit">Create</Button>
+				</Flex>
+			</form>
+		</Modal>
+	);
+};
+
 export const OverviewPage = ({
 	onLoadingChange,
 	onSelectList,
@@ -39,8 +69,9 @@ export const OverviewPage = ({
 	onLoadingChange?: (loading: boolean) => void;
 	onSelectList?: (list_id: string) => void;
 }): React.ReactElement => {
-	const [lists, setLists] = React.useState<ShoppingList[]>([]);
+	const [lists, setLists] = React.useState<ShoppingList[]>(undefined);
 	const [search, setSearch] = React.useState<string>("");
+	const [modalOpen, setModalOpen] = React.useState<boolean>(false);
 	React.useEffect(() => {
 		(async () => {
 			onLoadingChange(true);
@@ -54,13 +85,16 @@ export const OverviewPage = ({
 	const handleSearchChange = ({ currentTarget: { value } }: { currentTarget: { value: string } }) => setSearch(value);
 
 	return (
-		<Flex direction="column" w="100%">
-			<ShoppingListsComponent lists={lists ?? []} search={search} onSelectList={onSelectList} />
+		<>
+			<ShoppingListComponents lists={lists ?? []} search={search} onSelectList={onSelectList} />
 			<Divider hidden={!lists || lists.length === 0} mb="md" />
-			<Flex justify="flex-end">
-				<TextInput mr="sm" placeholder="Search..." sx={{ flexGrow: 1 }} value={search} onChange={handleSearchChange} />
-				<Button>Create</Button>
+			<Flex>
+				<TextInput placeholder="Search..." sx={{ flexGrow: 1 }} value={search} onChange={handleSearchChange} />
+				<Button ml="sm" onClick={() => setModalOpen(true)}>
+					Create
+				</Button>
 			</Flex>
-		</Flex>
+			<CreateShoppingListModal open={modalOpen} onClose={() => setModalOpen(false)} />
+		</>
 	);
 };

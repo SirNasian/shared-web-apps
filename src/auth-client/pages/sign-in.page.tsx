@@ -1,6 +1,6 @@
 import React from "react";
 import { Box, Button, Flex, LoadingOverlay, PasswordInput, TextInput } from "@mantine/core";
-import { useForm, UseFormReturnType } from "@mantine/form";
+import { useForm } from "@mantine/form";
 
 interface FormData {
 	username: string;
@@ -16,7 +16,7 @@ export const SignInPage = ({
 	onCancel?: () => void;
 	onAuthorizeRequest?: (username: string, password: string) => void;
 }): React.ReactElement => {
-	const form: UseFormReturnType<FormData> = useForm({
+	const form = useForm<FormData>({
 		initialValues: {
 			username: "",
 			password: "",

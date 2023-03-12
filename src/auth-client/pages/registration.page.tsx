@@ -1,6 +1,6 @@
 import React from "react";
 import { Box, Button, Flex, LoadingOverlay, PasswordInput, TextInput } from "@mantine/core";
-import { useForm, UseFormReturnType } from "@mantine/form";
+import { useForm } from "@mantine/form";
 import { notifications } from "@mantine/notifications";
 
 import config from "../config";
@@ -24,7 +24,7 @@ export const RegistrationPage = ({
 	onSuccess?: (username: string, password: string) => void;
 }): React.ReactElement => {
 	const [internalLoading, setInternalLoading] = React.useState<boolean>(false);
-	const form: UseFormReturnType<FormData> = useForm({
+	const form = useForm<FormData>({
 		initialValues: {
 			displayname: "",
 			username: "",
