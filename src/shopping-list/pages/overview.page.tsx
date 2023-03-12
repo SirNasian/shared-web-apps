@@ -33,7 +33,17 @@ const ShoppingListComponents = ({
 	</Box>
 );
 
-const CreateShoppingListModal = ({ open, onClose }: { open: boolean; onClose?: () => void }) => {
+const CreateShoppingListModal = ({
+	open,
+	onClose,
+	onListCreated,
+	onLoadingChange,
+}: {
+	open: boolean;
+	onClose?: () => void;
+	onListCreated?: (list_id: string) => void;
+	onLoadingChange?: (loading: boolean) => void;
+}) => {
 	const form = useForm<{ name: string; public: boolean }>({
 		initialValues: {
 			name: "",
@@ -44,9 +54,21 @@ const CreateShoppingListModal = ({ open, onClose }: { open: boolean; onClose?: (
 		},
 	});
 
-	const handleSubmit = (data: { name: string; public: boolean }) => {
-		// TODO: implement this
-		console.log(data);
+	const handleSubmit = async (data: { name: string; public: boolean }) => {
+		onLoadingChange && onLoadingChange(true);
+		const response = await window.fetch(new URL("/api/shopping-list", config.API_URL), {
+			method: "POST",
+			headers: {
+				"Content-Type": "application/json",
+			},
+			body: JSON.stringify([data]),
+		});
+		if (response.status !== 200) throw new Error(await response.text());
+		const list_ids = (await response.json()) as string[];
+		if (list_ids.length !== 1) throw new Error("Unexpected response");
+		onLoadingChange && onLoadingChange(false);
+		onListCreated && onListCreated(list_ids[0]);
+		onClose && onClose();
 	};
 
 	return (
@@ -72,14 +94,17 @@ export const OverviewPage = ({
 	const [lists, setLists] = React.useState<ShoppingList[]>(undefined);
 	const [search, setSearch] = React.useState<string>("");
 	const [modalOpen, setModalOpen] = React.useState<boolean>(false);
+
+	const loadShoppingLists = async () => {
+		onLoadingChange && onLoadingChange(true);
+		const response = await window.fetch(new URL("/api/shopping-list", config.API_URL));
+		if (response.status !== 200) throw new Error(await response.text());
+		setLists(await response.json());
+		onLoadingChange && onLoadingChange(false);
+	};
+
 	React.useEffect(() => {
-		(async () => {
-			onLoadingChange(true);
-			const response = await window.fetch(new URL("/api/shopping-list", config.API_URL));
-			if (response.status !== 200) throw new Error(await response.text());
-			setLists(await response.json());
-			onLoadingChange(false);
-		})();
+		loadShoppingLists();
 	}, []);
 
 	const handleSearchChange = ({ currentTarget: { value } }: { currentTarget: { value: string } }) => setSearch(value);
@@ -94,7 +119,12 @@ export const OverviewPage = ({
 					Create
 				</Button>
 			</Flex>
-			<CreateShoppingListModal open={modalOpen} onClose={() => setModalOpen(false)} />
+			<CreateShoppingListModal
+				open={modalOpen}
+				onClose={() => setModalOpen(false)}
+				onListCreated={loadShoppingLists}
+				onLoadingChange={onLoadingChange}
+			/>
 		</>
 	);
 };
