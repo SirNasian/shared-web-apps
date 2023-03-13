@@ -3,6 +3,7 @@ import { createRoot } from "react-dom/client";
 import { Center, LoadingOverlay, MantineProvider, Paper } from "@mantine/core";
 import { Notifications } from "@mantine/notifications";
 
+import { authorize } from "../common/client/api-requests";
 import { root_style, theme } from "../common/styles";
 import { EditorPage, OverviewPage } from "./pages";
 
@@ -36,8 +37,16 @@ const Router = ({
 };
 
 const Root = (): React.ReactElement => {
-	const [page, setPage] = React.useState<Page>(Page.OVERVIEW);
+	const [page, setPage] = React.useState<Page>(undefined);
 	const [loading, setLoading] = React.useState<boolean>(false);
+
+	React.useEffect(() => {
+		setLoading(true);
+		authorize().then(() => {
+			setPage(Page.OVERVIEW);
+			setLoading(false);
+		});
+	}, []);
 
 	return (
 		<MantineProvider withGlobalStyles withNormalizeCSS theme={theme}>

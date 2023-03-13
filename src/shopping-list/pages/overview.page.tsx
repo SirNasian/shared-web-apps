@@ -2,7 +2,7 @@ import React from "react";
 import { Box, Button, Card, Checkbox, Divider, Flex, Modal, TextInput } from "@mantine/core";
 import { useForm } from "@mantine/form";
 
-import config from "../../common/client/config";
+import { request } from "../../common/client/api-requests";
 
 // TODO: relocate this
 interface ShoppingList {
@@ -56,15 +56,11 @@ const CreateShoppingListModal = ({
 
 	const handleSubmit = async (data: { name: string; public: boolean }) => {
 		onLoadingChange && onLoadingChange(true);
-		const response = await window.fetch(new URL("/api/shopping-list", config.API_URL), {
+		const list_ids = await request<string[]>("/api/shopping-list", {
 			method: "POST",
-			headers: {
-				"Content-Type": "application/json",
-			},
+			headers: { "Content-Type": "application/json" },
 			body: JSON.stringify([data]),
 		});
-		if (response.status !== 200) throw new Error(await response.text());
-		const list_ids = (await response.json()) as string[];
 		if (list_ids.length !== 1) throw new Error("Unexpected response");
 		onLoadingChange && onLoadingChange(false);
 		onListCreated && onListCreated(list_ids[0]);
@@ -97,9 +93,7 @@ export const OverviewPage = ({
 
 	const loadShoppingLists = async () => {
 		onLoadingChange && onLoadingChange(true);
-		const response = await window.fetch(new URL("/api/shopping-list", config.API_URL));
-		if (response.status !== 200) throw new Error(await response.text());
-		setLists(await response.json());
+		setLists(await request<ShoppingList[]>("/api/shopping-list"));
 		onLoadingChange && onLoadingChange(false);
 	};
 
