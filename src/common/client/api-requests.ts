@@ -11,16 +11,19 @@ let _refresh_token: string;
 
 export const authorize = async (): Promise<void> => {
 	const current_url = new URL(window.location.href);
-	if (current_url.searchParams.has("code"))
-		({ access_token: _access_token, refresh_token: _refresh_token } = await obtainTokens({
-			authorization_code: current_url.searchParams.get("code"),
-		}));
-	else {
+	const redirect = () => {
+		current_url.searchParams.delete("code");
 		const redirect_url = new URL("/authorize", config.API_URL);
 		redirect_url.searchParams.append("response_type", "code");
-		redirect_url.searchParams.append("redirect_uri", window.location.href);
+		redirect_url.searchParams.append("redirect_uri", current_url.toString());
 		window.location.href = redirect_url.toString();
-	}
+	};
+
+	if (current_url.searchParams.has("code"))
+		await obtainTokens({ authorization_code: current_url.searchParams.get("code") })
+			.then((tokens) => ({ access_token: _access_token, refresh_token: _refresh_token } = tokens))
+			.catch(redirect);
+	else redirect();
 };
 
 export const obtainTokens = async ({
