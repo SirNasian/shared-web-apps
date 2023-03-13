@@ -3,7 +3,7 @@ import { Box, Button, Flex, LoadingOverlay, PasswordInput, TextInput } from "@ma
 import { useForm } from "@mantine/form";
 import { notifications } from "@mantine/notifications";
 
-import config from "../config";
+import config from "../../common/client/config";
 import { throwError } from "../../common/errors";
 
 interface FormData {

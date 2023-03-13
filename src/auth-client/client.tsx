@@ -3,7 +3,7 @@ import { createRoot } from "react-dom/client";
 import { Center, MantineProvider, Paper } from "@mantine/core";
 import { notifications, Notifications } from "@mantine/notifications";
 
-import config from "./config";
+import config from "../common/client/config";
 import { TokenResponse } from "../common/models";
 import { root_style, theme } from "../common/styles";
 import { LandingPage, RegistrationPage, SignInPage } from "./pages";

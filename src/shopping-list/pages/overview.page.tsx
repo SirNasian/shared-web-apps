@@ -2,7 +2,7 @@ import React from "react";
 import { Box, Button, Card, Checkbox, Divider, Flex, Modal, TextInput } from "@mantine/core";
 import { useForm } from "@mantine/form";
 
-import config from "../config";
+import config from "../../common/client/config";
 
 // TODO: relocate this
 interface ShoppingList {
