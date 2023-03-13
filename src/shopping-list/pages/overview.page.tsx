@@ -72,7 +72,7 @@ const CreateShoppingListModal = ({
 			<form onSubmit={form.onSubmit(handleSubmit)}>
 				<TextInput placeholder="Name" withAsterisk {...form.getInputProps("name")} />
 				<Flex mt="xs" justify="space-between">
-					<Checkbox label="Public" {...form.getInputProps("public")} />
+					<Checkbox label="Public" {...form.getInputProps("public", { type: "checkbox" })} />
 					<Button type="submit">Create</Button>
 				</Flex>
 			</form>
