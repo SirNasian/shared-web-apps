@@ -94,7 +94,7 @@ export const getTokens = (
 
 		const payload = verifyJWT(token, config.SECRET) as AuthorizationTokenPayload;
 		if (!payload.id || !payload.username || !payload.scope) throw new RequestError("Malformed code", 400);
-		Object.keys(payload).forEach((key) => ["username", "scope"].includes(key) || delete payload[key]);
+		Object.keys(payload).forEach((key) => ["id", "username", "scope"].includes(key) || delete payload[key]);
 		res.status(200).json(generateTokens(payload));
 	} catch (error: unknown) {
 		if (error instanceof RequestError) res.status(error.status).send(error.message);
