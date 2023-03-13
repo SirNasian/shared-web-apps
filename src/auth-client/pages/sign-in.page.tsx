@@ -60,7 +60,7 @@ export const SignInPage = ({
 			<Flex justify="space-between" mt="md">
 				<BackButton hidden={loading} />
 				<Button disabled={loading} type="submit">
-					Register
+					Sign In
 				</Button>
 			</Flex>
 		</form>

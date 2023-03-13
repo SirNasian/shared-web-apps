@@ -65,6 +65,7 @@ const CreateShoppingListModal = ({
 		onLoadingChange && onLoadingChange(false);
 		onListCreated && onListCreated(list_ids[0]);
 		onClose && onClose();
+		form.reset();
 	};
 
 	return (
