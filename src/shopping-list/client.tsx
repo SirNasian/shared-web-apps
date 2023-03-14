@@ -30,7 +30,7 @@ const Router = ({
 		case Page.OVERVIEW:
 			return <OverviewPage onLoadingChange={onLoadingChange} onSelectList={handleSelectList} />;
 		case Page.EDITOR:
-			return <EditorPage list_id={list_id} />;
+			return <EditorPage list_id={list_id} onLoadingChange={onLoadingChange} />;
 		default:
 			return null;
 	}
