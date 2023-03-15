@@ -1,4 +1,4 @@
-import { Response } from "express";
+import { Response, Request } from "express";
 import { QueryTypes } from "sequelize";
 import { v4 as uuidv4 } from "uuid";
 
@@ -25,11 +25,11 @@ const checkUserCanEditShoppingList = async (user_id: string, list_id: string): P
 	);
 
 export const getShoppingLists = async (
-	req: AuthorizedRequest<{ [key: string]: string; id?: string }>,
+	req: Request<{ [key: string]: string | undefined; id?: string }>,
 	res: Response
 ) => {
 	try {
-		const replacements = { list_id: req.params.id, user_id: req.user.id };
+		const replacements = { list_id: req.params.id, user_id: (req as AuthorizedRequest).user.id };
 		!replacements.list_id && delete replacements.list_id;
 		res.status(200).json(
 			await sequelize
@@ -56,16 +56,17 @@ export const getShoppingLists = async (
 };
 
 export const updateShoppingList = async (
-	req: AuthorizedRequest<{ id: string }, unknown, { name?: string; public?: boolean }>,
+	req: Request<{ id?: string }, unknown, { name?: string; public?: boolean }>,
 	res: Response
 ) => {
 	try {
-		if (!(await checkUserCanEditShoppingList(req.user.id, req.params.id))) throw new RequestError("Forbidden", 403);
+		if (!(await checkUserCanEditShoppingList((req as AuthorizedRequest).user.id, req.params.id ?? "")))
+			throw new RequestError("Forbidden", 403);
 		if (req.body.name === undefined) throw new RequestError("Missing Field: name", 400);
 		const id = await ShoppingLists.upsert({
-			id: req.params.id,
+			id: req.params.id ?? "",
 			name: req.body.name,
-			owner: req.user.id,
+			owner: (req as AuthorizedRequest).user.id,
 			public: Boolean(req.body.public),
 		}).then((lists) => lists[0].id);
 		res.status(200).send(id);
@@ -77,21 +78,21 @@ export const updateShoppingList = async (
 };
 
 export const updateShoppingLists = async (
-	req: AuthorizedRequest<unknown, unknown, { id?: string; name?: string; public?: boolean }[]>,
+	req: Request<unknown, unknown, { id?: string; name?: string; public?: boolean }[]>,
 	res: Response
 ) => {
 	const transaction = await sequelize.transaction();
 	try {
 		if (!Array.isArray(req.body)) throw new RequestError("Malformed Request", 400);
-		const lists: { [key: string]: string | boolean }[] = [];
+		const lists: { id: string; name: string; owner: string; public: boolean }[] = [];
 		for (const list of req.body) {
-			if (list.id && !(await checkUserCanEditShoppingList(req.user.id, list.id)))
+			if (list.id && !(await checkUserCanEditShoppingList((req as AuthorizedRequest).user.id, list.id)))
 				throw new RequestError("Forbidden", 403);
 			if (list.name === undefined) throw new RequestError("Missing Field: name", 400);
 			lists.push({
 				id: list.id ?? uuidv4(),
 				name: list.name,
-				owner: req.user.id,
+				owner: (req as AuthorizedRequest).user.id,
 				public: Boolean(list.public),
 			});
 		}
@@ -109,15 +110,12 @@ export const updateShoppingLists = async (
 	}
 };
 
-export const deleteShoppingLists = async (
-	req: AuthorizedRequest<{ id?: string }, unknown, string[]>,
-	res: Response
-) => {
+export const deleteShoppingLists = async (req: Request<{ id?: string }, unknown, string[]>, res: Response) => {
 	const transaction = await sequelize.transaction();
 	try {
 		const list_ids = req.params.id ? [req.params.id] : req.body ?? undefined;
 		if (!list_ids || !Array.isArray(list_ids)) throw new RequestError("Malformed Request", 400);
-		const replacements = { list_ids, user_id: req.user.id };
+		const replacements = { list_ids, user_id: (req as AuthorizedRequest).user.id };
 		const affected_rows = await sequelize
 			.query(
 				`
@@ -141,11 +139,15 @@ export const deleteShoppingLists = async (
 };
 
 export const getShoppingListItems = async (
-	req: AuthorizedRequest<{ [key: string]: string; list_id?: string; id?: string }>,
+	req: Request<{ [key: string]: string | undefined; list_id?: string; id?: string }>,
 	res: Response
 ) => {
 	try {
-		const replacements = { item_id: req.params.id, list_id: req.params.list_id, user_id: req.user.id };
+		const replacements = {
+			item_id: req.params.id,
+			list_id: req.params.list_id,
+			user_id: (req as AuthorizedRequest).user.id,
+		};
 		!replacements.item_id && delete replacements.item_id;
 		!replacements.list_id && delete replacements.list_id;
 		res.status(200).json(
@@ -175,8 +177,8 @@ export const getShoppingListItems = async (
 };
 
 export const updateShoppingListItem = async (
-	req: AuthorizedRequest<
-		{ list_id?: string; id: string },
+	req: Request<
+		{ list_id?: string; id?: string },
 		unknown,
 		{ list_id?: string; name?: string; quantity?: number; checked?: boolean }
 	>,
@@ -185,11 +187,12 @@ export const updateShoppingListItem = async (
 	try {
 		const list_id = req.params.list_id ?? req.body.list_id;
 		if (!list_id) throw new RequestError("Missing Field: list_id", 400);
-		if (!(await checkUserCanEditShoppingList(req.user.id, list_id))) throw new RequestError("Forbidden", 403);
+		if (!(await checkUserCanEditShoppingList((req as AuthorizedRequest).user.id, list_id)))
+			throw new RequestError("Forbidden", 403);
 		if (!req.body.name) throw new RequestError("Missing Field: name", 400);
 		const id = await ShoppingListItems.upsert({
 			list_id,
-			id: req.params.id,
+			id: req.params.id ?? "",
 			name: req.body.name,
 			quantity: req.body.quantity ?? 1,
 			checked: Boolean(req.body.checked),
@@ -203,7 +206,7 @@ export const updateShoppingListItem = async (
 };
 
 export const updateShoppingListItems = async (
-	req: AuthorizedRequest<
+	req: Request<
 		{ list_id?: string },
 		unknown,
 		{ id?: string; list_id?: string; name?: string; quantity?: number; checked?: boolean }[]
@@ -213,11 +216,12 @@ export const updateShoppingListItems = async (
 	const transaction = await sequelize.transaction();
 	try {
 		if (!Array.isArray(req.body)) throw new RequestError("Malformed Request", 400);
-		const items: object[] = [];
+		const items: { list_id: string; id: string; name: string; quantity: number; checked: boolean }[] = [];
 		for (const item of req.body) {
 			const list_id = req.params.list_id ?? item.list_id;
 			if (!list_id) throw new RequestError("Missing Field: list_id", 400);
-			if (!(await checkUserCanEditShoppingList(req.user.id, list_id))) throw new RequestError("Forbidden", 403);
+			if (!(await checkUserCanEditShoppingList((req as AuthorizedRequest).user.id, list_id)))
+				throw new RequestError("Forbidden", 403);
 			if (!item.name) throw new RequestError("Missing Field: name", 400);
 			items.push({
 				list_id,

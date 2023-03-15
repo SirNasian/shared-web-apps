@@ -86,7 +86,7 @@ export const RegistrationPage = ({
 
 	return (
 		<form onSubmit={form.onSubmit(handleSubmit)}>
-			<LoadingOverlay radius="lg" visible={loading} />
+			<LoadingOverlay radius="lg" visible={Boolean(loading)} />
 			<TextInput
 				autoFocus
 				disabled={loading}
@@ -112,7 +112,7 @@ export const RegistrationPage = ({
 				{...form.getInputProps("password")}
 			/>
 			<Flex justify="space-between" mt="md">
-				<BackButton hidden={loading} />
+				<BackButton hidden={Boolean(loading)} />
 				<Button disabled={loading} type="submit">
 					Register
 				</Button>

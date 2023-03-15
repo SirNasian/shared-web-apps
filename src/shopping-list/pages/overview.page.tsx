@@ -24,8 +24,8 @@ const ShoppingListComponents = ({
 	<Box sx={{ overflowY: "auto", scrollbarWidth: "none" }}>
 		{lists.map(
 			(list) =>
-				((search ?? "").trim() === "" || list.name.toLowerCase().includes(search.trim().toLowerCase())) && (
-					<Card key={list.id} mb="md" sx={{ cursor: "pointer" }} onClick={() => onSelectList(list.id)}>
+				((search ?? "").trim() === "" || list.name.toLowerCase().includes((search ?? "").trim().toLowerCase())) && (
+					<Card key={list.id} mb="md" sx={{ cursor: "pointer" }} onClick={() => onSelectList && onSelectList(list.id)}>
 						{list.name}
 					</Card>
 				)
@@ -69,7 +69,7 @@ const CreateShoppingListModal = ({
 	};
 
 	return (
-		<Modal centered opened={open} title="Create Shopping List" onClose={onClose}>
+		<Modal centered opened={open} title="Create Shopping List" onClose={onClose || (() => 0)}>
 			<form onSubmit={form.onSubmit(handleSubmit)}>
 				<TextInput placeholder="Name" withAsterisk {...form.getInputProps("name")} />
 				<Flex mt="xs" justify="space-between">
@@ -88,7 +88,7 @@ export const OverviewPage = ({
 	onLoadingChange?: (loading: boolean) => void;
 	onSelectList?: (list_id: string) => void;
 }): React.ReactElement => {
-	const [lists, setLists] = React.useState<ShoppingList[]>(undefined);
+	const [lists, setLists] = React.useState<ShoppingList[] | undefined>(undefined);
 	const [search, setSearch] = React.useState<string>("");
 	const [modalOpen, setModalOpen] = React.useState<boolean>(false);
 

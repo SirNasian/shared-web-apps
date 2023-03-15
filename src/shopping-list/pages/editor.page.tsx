@@ -81,7 +81,7 @@ const ItemEditorModal = ({
 	onClose,
 	onEdited,
 }: {
-	item: ShoppingListItem;
+	item?: ShoppingListItem;
 	open: boolean;
 	onClose?: () => void;
 	onEdited?: (item: ShoppingListItem) => void;
@@ -92,12 +92,12 @@ const ItemEditorModal = ({
 	});
 
 	React.useEffect(() => {
-		form.setValues(item);
+		item && form.setValues(item);
 	}, [item]);
 
 	return (
-		<Modal centered opened={open} title="Edit Item" onClose={onClose}>
-			<form onSubmit={form.onSubmit(onEdited)}>
+		<Modal centered opened={open} title="Edit Item" onClose={onClose || (() => 0)}>
+			<form onSubmit={form.onSubmit(onEdited || (() => 0))}>
 				<Input type="hidden" {...form.getInputProps("id")} />
 				<Input type="hidden" {...form.getInputProps("list_id")} />
 				<TextInput withAsterisk mb="xs" placeholder="Name" {...form.getInputProps("name")} />
@@ -118,8 +118,8 @@ export const EditorPage = ({
 	list_id: string;
 	onLoadingChange?: (loading: boolean) => void;
 }): React.ReactElement => {
-	const [items, setItems] = React.useState<ShoppingListItem[]>(undefined);
-	const [selectedItem, setSelectedItem] = React.useState<ShoppingListItem>(undefined);
+	const [items, setItems] = React.useState<ShoppingListItem[] | undefined>(undefined);
+	const [selectedItem, setSelectedItem] = React.useState<ShoppingListItem | undefined>(undefined);
 
 	const loadItems = async () => {
 		onLoadingChange && onLoadingChange(true);
@@ -132,12 +132,13 @@ export const EditorPage = ({
 	}, []);
 
 	const handleChecked = (item_id: string, checked: boolean) => {
-		setItems(items.map((item) => ({ ...item, checked: item.id === item_id ? checked : item.checked })));
+		items && setItems(items.map((item) => ({ ...item, checked: item.id === item_id ? checked : item.checked })));
 		// TODO: send request to update item
 	};
 
 	const handleItemEdited = (updated_item: ShoppingListItem): void => {
-		setItems(items.map((original_item) => (original_item.id === updated_item.id ? updated_item : original_item)));
+		items &&
+			setItems(items.map((original_item) => (original_item.id === updated_item.id ? updated_item : original_item)));
 		setSelectedItem(undefined);
 		// TODO: send request to update item
 	};
@@ -147,7 +148,7 @@ export const EditorPage = ({
 			<ItemListComponent
 				items={items ?? []}
 				onChecked={handleChecked}
-				onClick={(item_id) => setSelectedItem(items.find((item) => item.id === item_id) ?? undefined)}
+				onClick={(item_id) => setSelectedItem((items ?? []).find((item) => item.id === item_id) ?? undefined)}
 			/>
 			<ItemEditorModal
 				open={Boolean(selectedItem)}

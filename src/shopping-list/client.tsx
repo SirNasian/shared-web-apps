@@ -17,27 +17,27 @@ const Router = ({
 	onLoadingChange,
 	onPageChange,
 }: {
-	page: Page;
+	page?: Page;
 	onLoadingChange?: (loading: boolean) => void;
 	onPageChange?: (page: Page) => void;
 }): React.ReactElement => {
-	const [list_id, setListID] = React.useState<string>(undefined);
+	const [list_id, setListID] = React.useState<string | undefined>(undefined);
 	const handleSelectList = (list_id: string) => {
 		setListID(list_id);
-		onPageChange(Page.EDITOR);
+		onPageChange && onPageChange(Page.EDITOR);
 	};
 	switch (page) {
 		case Page.OVERVIEW:
 			return <OverviewPage onLoadingChange={onLoadingChange} onSelectList={handleSelectList} />;
 		case Page.EDITOR:
-			return <EditorPage list_id={list_id} onLoadingChange={onLoadingChange} />;
+			return <EditorPage list_id={list_id ?? ""} onLoadingChange={onLoadingChange} />;
 		default:
-			return null;
+			return <></>;
 	}
 };
 
 const Root = (): React.ReactElement => {
-	const [page, setPage] = React.useState<Page>(undefined);
+	const [page, setPage] = React.useState<Page | undefined>(undefined);
 	const [loading, setLoading] = React.useState<boolean>(false);
 
 	React.useEffect(() => {
@@ -61,4 +61,5 @@ const Root = (): React.ReactElement => {
 	);
 };
 
-createRoot(document.getElementById("root")).render(<Root />);
+const root = document.getElementById("root");
+root && createRoot(root).render(<Root />);

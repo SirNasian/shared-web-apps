@@ -20,7 +20,7 @@ export const authorize = async (): Promise<void> => {
 	};
 
 	if (current_url.searchParams.has("code"))
-		await obtainTokens({ authorization_code: current_url.searchParams.get("code") })
+		await obtainTokens({ authorization_code: current_url.searchParams.get("code") ?? "" })
 			.then((tokens) => ({ access_token: _access_token, refresh_token: _refresh_token } = tokens))
 			.catch(redirect);
 	else redirect();

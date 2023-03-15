@@ -3,7 +3,7 @@ import "dotenv/config";
 import { isTruthy } from "../common/functions";
 
 interface Config {
-	[key: string]: string | number | boolean;
+	[key: string]: string | number | boolean | undefined;
 	DATABASE_LOG?: string;
 	DATABASE_URI: string;
 	PORT: number;

@@ -32,13 +32,16 @@ const Router = ({
 	switch (page) {
 		case Page.LANDING:
 			return (
-				<LandingPage onRegister={() => onPageChange(Page.REGISTRATION)} onSignIn={() => onPageChange(Page.SIGN_IN)} />
+				<LandingPage
+					onRegister={() => onPageChange && onPageChange(Page.REGISTRATION)}
+					onSignIn={() => onPageChange && onPageChange(Page.SIGN_IN)}
+				/>
 			);
 		case Page.REGISTRATION:
 			return (
 				<RegistrationPage
 					loading={loading}
-					onCancel={() => onPageChange(Page.LANDING)}
+					onCancel={() => onPageChange && onPageChange(Page.LANDING)}
 					onError={onError}
 					onSuccess={onAuthorizeRequest}
 				/>
@@ -48,11 +51,11 @@ const Router = ({
 				<SignInPage
 					loading={loading}
 					onAuthorizeRequest={onAuthorizeRequest}
-					onCancel={() => onPageChange(Page.LANDING)}
+					onCancel={() => onPageChange && onPageChange(Page.LANDING)}
 				/>
 			);
 		default:
-			return null;
+			return <></>;
 	}
 };
 
@@ -82,7 +85,7 @@ const Root = (): React.ReactElement => {
 				});
 
 			const redirect_uri = new URL(url.searchParams.get("redirect_uri") ?? window.location.href);
-			url.searchParams.has("state") && redirect_uri.searchParams.append("state", url.searchParams.get("state"));
+			url.searchParams.has("state") && redirect_uri.searchParams.append("state", url.searchParams.get("state") ?? "");
 			if (response_type === "code") redirect_uri.searchParams.append("code", response as string);
 			else if (response_type === "token") {
 				const { access_token, refresh_token, expires_in } = response as TokenResponse;
@@ -139,4 +142,5 @@ const Root = (): React.ReactElement => {
 	);
 };
 
-createRoot(document.getElementById("root")).render(<Root />);
+const root = document.getElementById("root");
+root && createRoot(root).render(<Root />);

@@ -33,16 +33,20 @@ const generateTokens = (data: AuthorizationTokenPayload): TokenResponse => {
 };
 
 export const authorize = async (
-	req: Request<unknown, unknown, { [key: string]: string; response_type?: "code" | "token"; scope?: string }>,
+	req: Request<
+		unknown,
+		unknown,
+		{ [key: string]: string | undefined; response_type?: "code" | "token"; scope?: string }
+	>,
 	res: Response
 ) => {
 	// TODO: consider limiting requests per account per time to reduce bruteforce attacks
 	try {
-		const [authorization_type, authorization_value] = req.headers.authorization.split(" ");
+		const [authorization_type, authorization_value] = (req.headers.authorization ?? "").split(" ");
 		if (!authorization_value || authorization_type !== "Basic")
 			throw new RequestError("Invalid Authorization Header", 401);
 
-		if (!["code", "token"].includes(req.body.response_type)) throw new RequestError("Invalid response_type", 400);
+		if (!["code", "token"].includes(req.body.response_type ?? "")) throw new RequestError("Invalid response_type", 400);
 
 		const [username, password] = Buffer.from(authorization_value, "base64").toString("utf8").split(/:(.*)/);
 		if (!username || !password) throw new RequestError("Invalid Authorization Header", 401);
@@ -66,7 +70,7 @@ export const getTokens = (
 		unknown,
 		unknown,
 		{
-			[key: string]: string;
+			[key: string]: string | undefined;
 			code?: string;
 			grant_type?: "authorization_code" | "refresh_token";
 			refresh_token?: string;
@@ -79,20 +83,20 @@ export const getTokens = (
 	//       see: https://www.rfc-editor.org/rfc/rfc6749#page-47
 	// TODO: consider additional basic client_id + client_secret authentication
 	try {
-		if (!["authorization_code", "refresh_token"].includes(req.body.grant_type))
+		if (!["authorization_code", "refresh_token"].includes(req.body.grant_type ?? ""))
 			throw new RequestError("Invalid grant_type", 400);
 
-		if (req.body.grant_type === "authorization_code" && !authorization_codes.delete(req.body.code))
+		if (req.body.grant_type === "authorization_code" && !authorization_codes.delete(req.body.code ?? ""))
 			throw new RequestError("Invalid code", 400);
 
-		if (req.body.grant_type === "refresh_token" && !refresh_tokens.delete(req.body.refresh_token))
+		if (req.body.grant_type === "refresh_token" && !refresh_tokens.delete(req.body.refresh_token ?? ""))
 			throw new RequestError("Invalid refresh_token", 400);
 
 		let token;
 		if (req.body.grant_type === "authorization_code") token = req.body.code;
 		else if (req.body.grant_type === "refresh_token") token = req.body.refresh_token;
 
-		const payload = verifyJWT(token, config.SECRET) as AuthorizationTokenPayload;
+		const payload = verifyJWT(token ?? "", config.SECRET) as JwtPayload as AuthorizationTokenPayload;
 		if (!payload.id || !payload.username || !payload.scope) throw new RequestError("Malformed code", 400);
 		Object.keys(payload).forEach((key) => ["id", "username", "scope"].includes(key) || delete payload[key]);
 		res.status(200).json(generateTokens(payload));
@@ -107,14 +111,15 @@ export const validateAuthorizeRequest = (
 		unknown,
 		unknown,
 		unknown,
-		{ [key: string]: string; response_type?: "code" | "token"; client_id?: string; redirect_uri?: string }
+		{ [key: string]: string | unknown; response_type?: "code" | "token"; client_id?: string; redirect_uri?: string }
 	>,
 	res: Response,
 	next: NextFunction
 ) => {
 	// TODO: validate client_id + redirect_uri
 	try {
-		if (!["code", "token"].includes(req.query.response_type)) throw new RequestError("Invalid response_type", 400);
+		if (!["code", "token"].includes(req.query.response_type ?? ""))
+			throw new RequestError("Invalid response_type", 400);
 		next();
 	} catch (error: unknown) {
 		if (error instanceof RequestError) res.status(error.status).send(error.message);
