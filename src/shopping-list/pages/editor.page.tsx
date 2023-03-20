@@ -131,23 +131,41 @@ export const EditorPage = ({
 		loadItems();
 	}, []);
 
-	const handleChecked = (item_id: string, checked: boolean) => {
-		items && setItems(items.map((item) => ({ ...item, checked: item.id === item_id ? checked : item.checked })));
-		// TODO: send request to update item
+	const handleItemChecked = (item_id: string, checked: boolean) => {
+		onLoadingChange && onLoadingChange(true);
+		request(`/api/shopping-list/${list_id}/items/${item_id}`, {
+			method: "PUT",
+			headers: { "Content-Type": "application/json" },
+			body: JSON.stringify({ checked }),
+		})
+			.then(() => {
+				items && setItems(items.map((item) => ({ ...item, checked: item.id === item_id ? checked : item.checked })));
+				onLoadingChange && onLoadingChange(false);
+			})
+			.catch((error) => console.error(error)); // TODO: better exception handling
 	};
 
 	const handleItemEdited = (updated_item: ShoppingListItem): void => {
-		items &&
-			setItems(items.map((original_item) => (original_item.id === updated_item.id ? updated_item : original_item)));
 		setSelectedItem(undefined);
-		// TODO: send request to update item
+		onLoadingChange && onLoadingChange(true);
+		request(`/api/shopping-list/${list_id}/items/${updated_item.id}`, {
+			method: "PUT",
+			headers: { "Content-Type": "application/json" },
+			body: JSON.stringify(updated_item),
+		})
+			.then(() => {
+				items &&
+					setItems(items.map((original_item) => (original_item.id === updated_item.id ? updated_item : original_item)));
+				onLoadingChange && onLoadingChange(false);
+			})
+			.catch((error) => console.error(error)); // TODO: better exception handling
 	};
 
 	return (
 		<>
 			<ItemListComponent
 				items={items ?? []}
-				onChecked={handleChecked}
+				onChecked={handleItemChecked}
 				onClick={(item_id) => setSelectedItem((items ?? []).find((item) => item.id === item_id) ?? undefined)}
 			/>
 			<ItemEditorModal

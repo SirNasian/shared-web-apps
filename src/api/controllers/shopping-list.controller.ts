@@ -69,7 +69,7 @@ export const updateShoppingList = async (
 			owner: (req as AuthorizedRequest).user.id,
 			public: Boolean(req.body.public),
 		}).then((lists) => lists[0].id);
-		res.status(200).send(id);
+		res.status(200).json([id]);
 	} catch (error: unknown) {
 		if (error instanceof RequestError) res.status(error.status).send(`${error.name}: ${error.message}`);
 		else if (error instanceof Error) res.status(500).send(`${error.name}: ${error.message}`);
@@ -189,15 +189,16 @@ export const updateShoppingListItem = async (
 		if (!list_id) throw new RequestError("Missing Field: list_id", 400);
 		if (!(await checkUserCanEditShoppingList((req as AuthorizedRequest).user.id, list_id)))
 			throw new RequestError("Forbidden", 403);
-		if (!req.body.name) throw new RequestError("Missing Field: name", 400);
+		const item = await ShoppingListItems.findOne({ where: { id: req.params.id ?? "" } });
+		if (!item && !req.body.name) throw new RequestError("Missing Field: name", 400);
 		const id = await ShoppingListItems.upsert({
 			list_id,
 			id: req.params.id ?? "",
-			name: req.body.name,
-			quantity: req.body.quantity ?? 1,
-			checked: Boolean(req.body.checked),
+			name: req.body.name ?? item?.name ?? "",
+			quantity: req.body.quantity ?? item?.quantity ?? 1,
+			checked: Boolean(req.body.checked) ?? item?.checked ?? false,
 		}).then((lists) => lists[0].id);
-		res.status(200).send(id);
+		res.status(200).send([id]);
 	} catch (error: unknown) {
 		if (error instanceof RequestError) res.status(error.status).send(`${error.name}: ${error.message}`);
 		else if (error instanceof Error) res.status(500).send(`${error.name}: ${error.message}`);
