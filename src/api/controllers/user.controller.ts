@@ -40,7 +40,7 @@ export const RegisterUser = async (
 		await Users.create({
 			id: uuidv4(),
 			displayname: req.body.displayname ?? "",
-			username: req.body.name ?? "",
+			username: req.body.username ?? "",
 			password: req.body.password ?? "",
 		});
 
