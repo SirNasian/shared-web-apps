@@ -1,9 +1,14 @@
 import fs from "fs";
 import mariadb from "mariadb";
 import mysql from "mysql2";
-import { DataTypes, InferAttributes, InferCreationAttributes, Model, Sequelize } from "sequelize";
+import { Sequelize } from "sequelize";
 
 import config from "../config";
+import { DefineUser } from "./users";
+import { DefineShoppingList } from "./shoppinglist_lists";
+import { DefineShoppingListItem } from "./shoppinglist_items";
+import { DefineShoppingListEditor } from "./shoppinglist_editors";
+import { DefineShoppingListViewer } from "./shoppinglist_viewers";
 
 const dialect = String(config.DATABASE_URI).split(":")[0];
 const logging = (sql: string) =>
@@ -24,162 +29,22 @@ switch (dialect) {
 export const sequelize = new Sequelize(config.DATABASE_URI, { dialect, dialectModule, logging });
 sequelize.authenticate();
 
-export class Users extends Model<InferAttributes<Users>, InferCreationAttributes<Users>> {
-	declare id: string;
-	declare displayname: string;
-	declare username: string;
-	declare password: string;
-}
-Users.init(
-	{
-		id: {
-			type: DataTypes.STRING,
-			allowNull: false,
-			primaryKey: true,
-		},
-		displayname: {
-			type: DataTypes.STRING,
-			allowNull: false,
-		},
-		username: {
-			type: DataTypes.STRING,
-			allowNull: false,
-		},
-		password: {
-			type: DataTypes.STRING,
-			allowNull: false,
-		},
-	},
-	{
-		tableName: "users",
-		sequelize,
-	}
-);
+export const User = DefineUser(sequelize);
+export const ShoppingList = DefineShoppingList(sequelize);
+export const ShoppingListItems = DefineShoppingListItem(sequelize);
+export const ShoppingListEditor = DefineShoppingListEditor(sequelize);
+export const ShoppingListViewer = DefineShoppingListViewer(sequelize);
 
-export class ShoppingLists extends Model<InferAttributes<ShoppingLists>, InferCreationAttributes<ShoppingLists>> {
-	declare id: string;
-	declare name: string;
-	declare owner: string;
-	declare public: boolean;
-}
-ShoppingLists.init(
-	{
-		id: {
-			type: DataTypes.STRING,
-			allowNull: false,
-			primaryKey: true,
-		},
-		name: {
-			type: DataTypes.STRING,
-			allowNull: false,
-		},
-		owner: {
-			type: DataTypes.STRING,
-			allowNull: false,
-		},
-		public: {
-			type: DataTypes.BOOLEAN,
-			allowNull: false,
-		},
-	},
-	{
-		tableName: "shoppinglist_lists",
-		sequelize,
-	}
-);
-
-export class ShoppingListItems extends Model<
-	InferAttributes<ShoppingListItems>,
-	InferCreationAttributes<ShoppingListItems>
-> {
-	declare id: string;
-	declare list_id: string;
-	declare name: string;
-	declare quantity: number;
-	declare checked: boolean;
-}
-ShoppingListItems.init(
-	{
-		id: {
-			type: DataTypes.STRING,
-			allowNull: false,
-			primaryKey: true,
-		},
-		list_id: {
-			type: DataTypes.STRING,
-			allowNull: false,
-		},
-		name: {
-			type: DataTypes.STRING,
-			allowNull: false,
-		},
-		quantity: {
-			type: DataTypes.INTEGER,
-			allowNull: false,
-		},
-		checked: {
-			type: DataTypes.BOOLEAN,
-			allowNull: false,
-		},
-	},
-	{
-		tableName: "shoppinglist_items",
-		sequelize,
-	}
-);
-
-export class ShoppingListEditors extends Model<
-	InferAttributes<ShoppingListEditors>,
-	InferCreationAttributes<ShoppingListEditors>
-> {
-	declare user_id: string;
-	declare list_id: string;
-}
-ShoppingListEditors.init(
-	{
-		user_id: {
-			type: DataTypes.STRING,
-			allowNull: false,
-		},
-		list_id: {
-			type: DataTypes.STRING,
-			allowNull: false,
-		},
-	},
-	{
-		tableName: "shoppinglist_editors",
-		sequelize,
-	}
-);
-
-export class ShoppingListViewers extends Model<
-	InferAttributes<ShoppingListViewers>,
-	InferCreationAttributes<ShoppingListViewers>
-> {
-	declare user_id: string;
-	declare list_id: string;
-}
-ShoppingListViewers.init(
-	{
-		user_id: {
-			type: DataTypes.STRING,
-			allowNull: false,
-		},
-		list_id: {
-			type: DataTypes.STRING,
-			allowNull: false,
-		},
-	},
-	{
-		tableName: "shoppinglist_viewers",
-		sequelize,
-	}
-);
-
-ShoppingLists.hasMany(ShoppingListItems, { foreignKey: "list_id", onDelete: "cascade" });
-ShoppingLists.hasMany(ShoppingListEditors, { foreignKey: "list_id", onDelete: "cascade" });
-ShoppingLists.hasMany(ShoppingListViewers, { foreignKey: "list_id", onDelete: "cascade" });
-Users.hasMany(ShoppingListEditors, { foreignKey: "user_id", onDelete: "cascade" });
-Users.hasMany(ShoppingListViewers, { foreignKey: "user_id", onDelete: "cascade" });
+ShoppingList.hasMany(ShoppingListItems, { foreignKey: "list_id", onDelete: "cascade" });
+ShoppingList.hasMany(ShoppingListEditor, { foreignKey: "list_id", onDelete: "cascade" });
+ShoppingList.hasMany(ShoppingListViewer, { foreignKey: "list_id", onDelete: "cascade" });
+User.hasMany(ShoppingListEditor, { foreignKey: "user_id", onDelete: "cascade" });
+User.hasMany(ShoppingListViewer, { foreignKey: "user_id", onDelete: "cascade" });
 
 sequelize.sync();
+
+export { UserAttributes } from "./users";
+export { ShoppingListAttributes } from "./shoppinglist_lists";
+export { ShoppingListItemAttributes } from "./shoppinglist_items";
+export { ShoppingListEditorAttributes } from "./shoppinglist_editors";
+export { ShoppingListViewerAttributes } from "./shoppinglist_viewers";

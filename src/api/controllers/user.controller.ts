@@ -2,14 +2,14 @@ import { Request, Response } from "express";
 import { v4 as uuidv4 } from "uuid";
 
 import { RequestError } from "../../common/errors";
-import { Users } from "../database";
+import { User } from "../database";
 
 export const CountUsers = async (
 	req: Request<unknown, unknown, unknown, { [key: string]: string | undefined; id?: string; username?: string }>,
 	res: Response
 ) => {
 	Object.keys(req.query).forEach((key: string) => !["id", "username"].includes(key) && delete req.query[key]);
-	res.status(200).send(String(await Users.count({ where: req.query })));
+	res.status(200).send(String(await User.count({ where: req.query })));
 };
 
 export const RegisterUser = async (
@@ -33,11 +33,11 @@ export const RegisterUser = async (
 		if (!/^\w([\w. ]*\w)?$/.test(req.body.displayname ?? "")) throw new RequestError("Invalid display name", 400);
 		if (!/^\w([\w.]*\w)?$/.test(req.body.username ?? "")) throw new RequestError("Invalid username", 400);
 
-		if ((await Users.count({ where: { username: req.body.username } })) > 0)
+		if ((await User.count({ where: { username: req.body.username } })) > 0)
 			throw new RequestError("This username is already taken by another user", 400);
 
 		// TODO: hash password
-		await Users.create({
+		await User.create({
 			id: uuidv4(),
 			displayname: req.body.displayname ?? "",
 			username: req.body.username ?? "",

@@ -2,7 +2,13 @@ import { Response, Request } from "express";
 import { QueryTypes } from "sequelize";
 import { v4 as uuidv4 } from "uuid";
 
-import { sequelize, ShoppingListItems, ShoppingLists } from "../database";
+import {
+	sequelize,
+	ShoppingList,
+	ShoppingListItems,
+	ShoppingListAttributes,
+	ShoppingListItemAttributes,
+} from "../database";
 import { RequestError } from "../../common/errors";
 import { AuthorizedRequest } from "../middleware/authorize.middleware";
 
@@ -33,7 +39,7 @@ export const getShoppingLists = async (
 		!replacements.list_id && delete replacements.list_id;
 		res.status(200).json(
 			await sequelize
-				.query<ShoppingLists>(
+				.query<ShoppingListAttributes>(
 					`
 						SELECT \`lists\`.* FROM \`shoppinglist_lists\` \`lists\`
 						LEFT JOIN \`shoppinglist_viewers\` \`viewers\` ON (\`viewers\`.\`list_id\` = \`lists\`.\`id\`)
@@ -63,7 +69,7 @@ export const updateShoppingList = async (
 		if (!(await checkUserCanEditShoppingList((req as AuthorizedRequest).user.id, req.params.id ?? "")))
 			throw new RequestError("Forbidden", 403);
 		if (req.body.name === undefined) throw new RequestError("Missing Field: name", 400);
-		const id = await ShoppingLists.upsert({
+		const id = await ShoppingList.upsert({
 			id: req.params.id ?? "",
 			name: req.body.name,
 			owner: (req as AuthorizedRequest).user.id,
@@ -96,7 +102,7 @@ export const updateShoppingLists = async (
 				public: Boolean(list.public),
 			});
 		}
-		const list_ids = await ShoppingLists.bulkCreate(lists, {
+		const list_ids = await ShoppingList.bulkCreate(lists, {
 			updateOnDuplicate: ["name", "public"],
 			transaction,
 		}).then((lists) => lists.map((list) => list.id));
@@ -152,7 +158,7 @@ export const getShoppingListItems = async (
 		!replacements.list_id && delete replacements.list_id;
 		res.status(200).json(
 			await sequelize
-				.query<ShoppingListItems>(
+				.query<ShoppingListItemAttributes>(
 					`
 						SELECT \`items\`.* FROM \`shoppinglist_items\` \`items\`
 						LEFT JOIN \`shoppinglist_lists\` \`lists\` ON (\`lists\`.\`id\` = \`items\`.\`list_id\`)

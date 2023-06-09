@@ -4,7 +4,7 @@ import { NextFunction, Response, Request } from "express";
 import config from "../config";
 import { TokenResponse } from "../../common/models";
 import { RequestError } from "../../common/errors";
-import { Users } from "../database";
+import { User } from "../database";
 
 // TODO: move these to a less volatile storage solution
 // TODO: allow revoking of authorization_codes, access_tokens, and refresh_tokens
@@ -51,7 +51,7 @@ export const authorize = async (
 		const [username, password] = Buffer.from(authorization_value, "base64").toString("utf8").split(/:(.*)/);
 		if (!username || !password) throw new RequestError("Invalid Authorization Header", 401);
 
-		const users = await Users.findAll({ where: { username } });
+		const users = await User.findAll({ where: { username } });
 		if (users.length === 0 || users.length > 1 || users[0].password !== password)
 			throw new RequestError("Incorrect credentials", 401);
 
