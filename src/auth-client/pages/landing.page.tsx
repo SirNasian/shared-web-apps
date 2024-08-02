@@ -13,7 +13,7 @@ export const LandingPage = ({
 			Sign In
 		</Button>
 		<Divider mb="sm" mt="sm" />
-		<Button color="dark" fullWidth variant="sutle" onClick={onRegister}>
+		<Button color="dark" fullWidth variant="subtle" onClick={onRegister}>
 			Register
 		</Button>
 	</>
