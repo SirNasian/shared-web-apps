@@ -12,23 +12,23 @@ import {
 import { AuthorizeMiddleware } from "../middleware/authorize.middleware";
 
 export const ShoppingListRouter = Router();
-const bodyJSON = expressJSON();
 
 ShoppingListRouter.use("/", AuthorizeMiddleware);
+ShoppingListRouter.use(expressJSON());
 
 ShoppingListRouter.get("/items", getShoppingListItems);
-ShoppingListRouter.post("/items", bodyJSON, updateShoppingListItems);
+ShoppingListRouter.post("/items", updateShoppingListItems);
 ShoppingListRouter.get("/items/:id", getShoppingListItems);
-ShoppingListRouter.put("/items/:id", bodyJSON, updateShoppingListItem);
+ShoppingListRouter.put("/items/:id", updateShoppingListItem);
 
 ShoppingListRouter.get("/:list_id/items", getShoppingListItems);
-ShoppingListRouter.post("/:list_id/items", bodyJSON, updateShoppingListItems);
+ShoppingListRouter.post("/:list_id/items", updateShoppingListItems);
 ShoppingListRouter.get("/:list_id/items/:id", getShoppingListItems);
-ShoppingListRouter.put("/:list_id/items/:id", bodyJSON, updateShoppingListItem);
+ShoppingListRouter.put("/:list_id/items/:id", updateShoppingListItem);
 
 ShoppingListRouter.get("/", getShoppingLists);
-ShoppingListRouter.post("/", bodyJSON, updateShoppingLists);
-ShoppingListRouter.delete("/", bodyJSON, deleteShoppingLists);
+ShoppingListRouter.post("/", updateShoppingLists);
+ShoppingListRouter.delete("/", deleteShoppingLists);
 ShoppingListRouter.get("/:id", getShoppingLists);
-ShoppingListRouter.put("/:id", bodyJSON, updateShoppingList);
-ShoppingListRouter.delete("/:id", bodyJSON, deleteShoppingLists);
+ShoppingListRouter.put("/:id", updateShoppingList);
+ShoppingListRouter.delete("/:id", deleteShoppingLists);
