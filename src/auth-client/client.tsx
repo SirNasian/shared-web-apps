@@ -127,7 +127,7 @@ const Root = (): React.ReactElement => {
 	return (
 		<MantineProvider withGlobalStyles withNormalizeCSS theme={theme}>
 			<Notifications />
-			<Center h="100vh" sx={root_style}>
+			<Center h="100%" sx={root_style}>
 				<Paper p="lg" pos="relative" radius="lg" w={getPreferredWidth(page)}>
 					<Router
 						loading={loading}

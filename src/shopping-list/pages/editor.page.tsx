@@ -29,7 +29,7 @@ interface ShoppingListItem {
 
 const useStyles = createStyles((theme) => ({
 	page: {
-		minHeight: "50vh",
+		minHeight: "50%",
 		overflowY: "scroll",
 	},
 	fab: {
