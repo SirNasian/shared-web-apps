@@ -28,10 +28,6 @@ interface ShoppingListItem {
 }
 
 const useStyles = createStyles((theme) => ({
-	page: {
-		minHeight: "50%",
-		overflowY: "scroll",
-	},
 	fab: {
 		position: "absolute",
 		bottom: theme.spacing.md,
@@ -157,8 +153,6 @@ export const EditorPage = ({
 	const [items, setItems] = React.useState<ShoppingListItem[] | undefined>(undefined);
 	const [selectedItem, setSelectedItem] = React.useState<ShoppingListItem | undefined>(undefined);
 
-	const { classes } = useStyles();
-
 	const loadItems = async () => {
 		onLoadingChange && onLoadingChange(true);
 		setItems(await request<ShoppingListItem[]>(`/api/shopping-list/${list_id}/items`));
@@ -200,7 +194,7 @@ export const EditorPage = ({
 	};
 
 	return (
-		<Box className={classes.page}>
+		<Box sx={{ overflowY: "auto" }}>
 			<ItemListComponent
 				items={items ?? []}
 				onChecked={handleItemChecked}

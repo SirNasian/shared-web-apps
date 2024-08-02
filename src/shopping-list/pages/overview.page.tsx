@@ -21,7 +21,7 @@ const ShoppingListComponents = ({
 	search?: string;
 	onSelectList?: (list_id: string) => void;
 }): React.ReactElement => (
-	<Box sx={{ overflowY: "auto", scrollbarWidth: "none" }}>
+	<Box sx={{ overflowY: "auto" }}>
 		{lists.map(
 			(list) =>
 				((search ?? "").trim() === "" || list.name.toLowerCase().includes((search ?? "").trim().toLowerCase())) && (
@@ -107,13 +107,15 @@ export const OverviewPage = ({
 	return (
 		<>
 			<ShoppingListComponents lists={lists ?? []} search={search} onSelectList={onSelectList} />
-			<Divider hidden={!lists || lists.length === 0} mb="md" />
-			<Flex>
-				<TextInput placeholder="Search..." sx={{ flexGrow: 1 }} value={search} onChange={handleSearchChange} />
-				<Button ml="sm" onClick={() => setModalOpen(true)}>
-					Create
-				</Button>
-			</Flex>
+			<Box>
+				<Divider hidden={!lists || lists.length === 0} mb="md" />
+				<Flex>
+					<TextInput placeholder="Search..." sx={{ flexGrow: 1 }} value={search} onChange={handleSearchChange} />
+					<Button ml="sm" onClick={() => setModalOpen(true)}>
+						Create
+					</Button>
+				</Flex>
+			</Box>
 			<CreateShoppingListModal
 				open={modalOpen}
 				onClose={() => setModalOpen(false)}
