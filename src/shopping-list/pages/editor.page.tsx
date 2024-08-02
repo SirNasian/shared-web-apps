@@ -1,5 +1,19 @@
 import React from "react";
-import { Button, Checkbox, Flex, Input, Modal, NumberInput, Paper, Text, TextInput } from "@mantine/core";
+import {
+	ActionIcon,
+	Box,
+	Button,
+	Checkbox,
+	Flex,
+	Input,
+	Modal,
+	NumberInput,
+	Paper,
+	Text,
+	TextInput,
+	createStyles,
+} from "@mantine/core";
+import { IconPlus } from "@tabler/icons-react";
 import { useForm } from "@mantine/form";
 
 import { request } from "../../common/client/api-requests";
@@ -12,6 +26,19 @@ interface ShoppingListItem {
 	quantity: number;
 	checked: boolean;
 }
+
+const useStyles = createStyles((theme) => ({
+	page: {
+		minHeight: "50vh",
+		overflowY: "scroll",
+	},
+	fab: {
+		position: "absolute",
+		bottom: theme.spacing.md,
+		right: theme.spacing.md,
+		zIndex: 1000,
+	},
+}));
 
 const ItemComponent = ({
 	checked,
@@ -111,6 +138,15 @@ const ItemEditorModal = ({
 	);
 };
 
+const CreateItemFAB = (): React.ReactElement => {
+	const { classes } = useStyles();
+	return (
+		<ActionIcon className={classes.fab}>
+			<IconPlus />
+		</ActionIcon>
+	);
+};
+
 export const EditorPage = ({
 	list_id,
 	onLoadingChange,
@@ -120,6 +156,8 @@ export const EditorPage = ({
 }): React.ReactElement => {
 	const [items, setItems] = React.useState<ShoppingListItem[] | undefined>(undefined);
 	const [selectedItem, setSelectedItem] = React.useState<ShoppingListItem | undefined>(undefined);
+
+	const { classes } = useStyles();
 
 	const loadItems = async () => {
 		onLoadingChange && onLoadingChange(true);
@@ -162,7 +200,7 @@ export const EditorPage = ({
 	};
 
 	return (
-		<>
+		<Box className={classes.page}>
 			<ItemListComponent
 				items={items ?? []}
 				onChecked={handleItemChecked}
@@ -174,6 +212,7 @@ export const EditorPage = ({
 				onClose={() => setSelectedItem(undefined)}
 				onEdited={handleItemEdited}
 			/>
-		</>
+			<CreateItemFAB />
+		</Box>
 	);
 };
